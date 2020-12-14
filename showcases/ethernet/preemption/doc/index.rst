@@ -82,25 +82,39 @@ We set up high background traffic (96 Mbps) and lower time-sensitive traffic (9.
 
 In the **Default** configuration, no preemption or priority queue is used; the configuration just limits the EthernetMac's queue to decrease the measured end-to-end delay:
 
+.. .. literalinclude:: ../omnetpp.ini
+   :start-at: Config Default
+   :end-at: typename
+   :language: ini
+
 .. literalinclude:: ../omnetpp.ini
    :start-at: Config Default
-   :end-at: dropperClass
+   :end-before: Config
    :language: ini
 
 In the **PriorityQueue** configuration, we change the queue type in the Mac layer from the default PacketQueue to PriorityQueue:
 
-.. literalinclude:: ../omnetpp.ini
+.. .. literalinclude:: ../omnetpp.ini
    :start-at: Config PriorityQueue
    :end-at: classifierClass
+   :language: ini
+
+.. literalinclude:: ../omnetpp.ini
+   :start-at: Config PriorityQueue
+   :end-before: Config
    :language: ini
 
 The priority queue needs two internal queues, for the two traffic categories; we also limit the internal queues, disable the buffer, and configure a packet dropper function. We configure the priority queue's classifier to classify packets based on the VLAN ID request.
 
 In the **Preemption** configuration, we replace the :ned:`EthernetMacLayer` and :ned:`EthernetPhyLayer` modules default in :ned:`LayeredEthernetInterface` with :ned:`EthernetPreemptingMacLayer` and :ned:`EthernetPreemptingPhyLayer`; the latter support Ethernet preemption:
 
-.. literalinclude:: ../omnetpp.ini
+.. .. literalinclude:: ../omnetpp.ini
    :start-at: Config Preemption
    :end-at: dropperClass
+   :language: ini
+
+.. literalinclude:: ../omnetpp.ini
+   :start-at: Config Preemption
    :language: ini
 
 We also limit the queue, and configure a packet dropper function.
