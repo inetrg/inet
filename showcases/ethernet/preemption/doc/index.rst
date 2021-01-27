@@ -72,6 +72,7 @@ One of the hosts, ``host1`` is configured to send UDP packets to ``host2``:
 
 There are two :ned:`UdpApp`'s in ``host1``, one generating background traffic and the other time-sensitive traffic.
 :ned:`UdpApp` is built using generic protocol components. We configure the app's ``outbound`` module to be a PacketTagger, so we can tag packets with a VLAN ID requests, to put them in different priority categories.
+**TODO** why
 
 We set up high background traffic (96 Mbps) and lower time-sensitive traffic (9.6 Mbps); both send 1200B packets:
 
@@ -104,7 +105,7 @@ In the **PriorityQueue** configuration, we change the queue type in the Mac laye
    :end-before: Config
    :language: ini
 
-The priority queue needs two internal queues, for the two traffic categories; we also limit the internal queues, disable the buffer, and configure a packet dropper function. We configure the priority queue's classifier to classify packets based on the VLAN ID request.
+The priority queue needs two internal queues, for the two traffic categories; we also limit the internal queues, disable the buffer, and configure a packet dropper function. We configure the priority queue's classifier to classify packets based on the VLAN ID request. **TODO** why
 
 In the **Preemption** configuration, we replace the :ned:`EthernetMacLayer` and :ned:`EthernetPhyLayer` modules default in :ned:`LayeredEthernetInterface` with :ned:`EthernetPreemptingMacLayer` and :ned:`EthernetPreemptingPhyLayer`; the latter support Ethernet preemption:
 
@@ -122,11 +123,33 @@ We also limit the queue, and configure a packet dropper function.
 Results
 -------
 
+In the case of the default configuration, the MAC stores packets in a FIFO queue.
+Thus higher priority packets wait in line with the lower priority packets, before getting sent eventually.
+
+In the case of the priority queue configuration, higher priority frames wait in their own queue in the PriorityQueue module in the MAC. If there are high priority frames present in the queue, the MAC will send them next, after finishing the transmission of the current frame. The transmission of the current frame needs to finish before sending the high priority frame.
+
+In the case of the preemption configuration, the higher priority frames have their own queue. The MAC immediatelly stops transmitting the current low priority frame, and sends the high priority frame.
+After the high priority frame transmission is complete, it sends the remaining fragment of the low priority frame.
+
 Here is a video of the preemption behavior:
 
-.. video:: media/preemption.mp4
+.. .. video:: media/preemption.mp4
    :width: 100%
 	 :align: center
+
+.. video:: media/Preemption1.mp4
+   :width: 100%
+	 :align: center
+
+.. **TODO** packet log
+
+.. .. figure:: media/packetlog.png
+   :align: center
+
+.. figure:: media/packetlog2.png
+   :align: center
+
+When the 
 
 .. figure:: media/delay.png
    :align: center

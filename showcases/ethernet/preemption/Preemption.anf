@@ -1861,7 +1861,7 @@ plt.savefig('delay.png', dpi=150, transparent=True)
             <property name="filter" value="name =~ endToEndDelay:vector AND ((runattr:experiment =~ Preemption OR runattr:experiment =~ Default OR runattr:experiment =~ PriorityQueue))"/>
             <property name="vector_start_time" value=""/>
             <property name="linestyle" value="solid"/>
-            <property name="markersize" value="1"/>
+            <property name="markersize" value="0"/>
             <property name="drawstyle" value="auto"/>
             <property name="marker" value="none"/>
             <property name="plt.style" value="default"/>
