@@ -149,7 +149,7 @@ Here is a video of the preemption behavior:
 .. figure:: media/packetlog2.png
    :align: center
 
-When the 
+At the start of the simulation/at simulation time 0, both the high and the low priority app sends an UDP packet to lower layers. The Ethernet MAC starts transmitting the lower priority frame **TODO** why
 
 .. figure:: media/delay.png
    :align: center
