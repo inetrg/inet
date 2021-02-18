@@ -137,7 +137,15 @@ Here is a video of the preemption behavior:
    :width: 100%
 	 :align: center
 
-.. video:: media/Preemption1.mp4
+.. .. video:: media/Preemption1.mp4
+   :width: 100%
+	 :align: center
+
+.. .. video:: media/preemption2.mp4
+   :width: 100%
+	 :align: center
+
+.. video:: media/preemption3.mp4
    :width: 100%
 	 :align: center
 
@@ -146,8 +154,32 @@ Here is a video of the preemption behavior:
 .. .. figure:: media/packetlog.png
    :align: center
 
-.. figure:: media/packetlog2.png
+.. .. figure:: media/packetlog2.png
    :align: center
+
+.. .. figure:: media/packetlog3.png
+   :align: center
+
+.. .. figure:: media/packetlog4.png
+   :align: center
+
+.. figure:: media/packetlog5.png
+   :align: center
+
+.. The transmission of ``background-3`` starts before the high priority frame arrives at the MAC.
+
+The Ethernet MAC in ``host1`` starts transmitting ``background-3``. While it is transmitting, a time-sensitive frame (``ts-1``) arrives at the MAC. The MAC interrupts the transmission of  ``background-3``; in the animation, ``background-3`` is first displayed as a whole frame, and changes to ``background-3 frag-0 progress`` when the high priority frame is available. Then there is the high priority frame transmission and then the remaining fragment of background-3 (frag1). **TODO**
+
+so
+
+- when ts-1 is available, the transmission animation of background-3 changes to frag-0
+- it is interrupted
+- ts-0 is sent
+- frag0 is sent
+- in the packet log, first there is the whole background-3 (cos the MAC through at first that it'll send it uninterrupted)
+- then there is the frag0 (which is about halfway into the transmission of background 3
+- then there is ts-1
+- then there frag1
 
 At the start of the simulation/at simulation time 0, both the high and the low priority app sends an UDP packet to lower layers. The Ethernet MAC starts transmitting the lower priority frame **TODO** why
 
