@@ -181,6 +181,44 @@ so
 - then there is ts-1
 - then there frag1
 
+.. |1| image:: media/1.png
+
+.. |2| image:: media/2.png
+
+.. |3| image:: media/3.png
+
+.. |4| image:: media/4.png
+
++-----+-----+
++ |1| + |2| +
++-----+-----+
++ |3| + |4| +
++-----+-----+
+
+.. figure:: media/linear.png
+   :align: center
+
+.. figure:: media/linear2.png
+   :align: center
+
+.. figure:: media/wireshark.png
+   :align: center
+
+- wireshark displays fragmented ethernet frames weirdly
+- the two fragments are 5 and 7
+- the reassembled frame is 6
+- the sum of the sizes of 5 + 7 (583 + 683) is 1266
+- its more than the unfragmented frame size (1254) because there are two ethernet headers/more headers
+
+.. .. figure:: media/inspector.png
+   :align: center
+
+.. .. figure:: media/packetinspector.png
+   :align: center
+
+.. figure:: media/packetinspector2.png
+   :align: center
+
 At the start of the simulation/at simulation time 0, both the high and the low priority app sends an UDP packet to lower layers. The Ethernet MAC starts transmitting the lower priority frame **TODO** why
 
 .. figure:: media/delay.png
