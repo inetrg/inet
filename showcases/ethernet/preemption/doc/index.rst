@@ -165,6 +165,7 @@ Here is a video of the preemption behavior:
 
 .. figure:: media/packetlog5.png
    :align: center
+   :width: 100%
 
 .. The transmission of ``background-3`` starts before the high priority frame arrives at the MAC.
 
@@ -181,28 +182,39 @@ so
 - then there is ts-1
 - then there frag1
 
-.. |1| image:: media/1.png
+.. .. |1| image:: media/1.png
 
-.. |2| image:: media/2.png
+.. .. |2| image:: media/2.png
 
-.. |3| image:: media/3.png
+.. .. |3| image:: media/3.png
 
-.. |4| image:: media/4.png
+.. .. |4| image:: media/4.png
 
-+-----+-----+
-+ |1| + |2| +
-+-----+-----+
-+ |3| + |4| +
-+-----+-----+
+.. +-----+-----+
+   + |1| + |2| +
+   +-----+-----+
+   + |3| + |4| +
+   +-----+-----+
+
+.. figure:: media/seqchart4.png
+   :align: center
+   :width: 100%
+
+**V1**
 
 .. figure:: media/linear.png
    :align: center
+   :width: 100%
+
+**V2**
 
 .. figure:: media/linear2.png
    :align: center
+   :width: 100%
 
 .. figure:: media/wireshark.png
    :align: center
+   :width: 100%
 
 - wireshark displays fragmented ethernet frames weirdly
 - the two fragments are 5 and 7
@@ -218,8 +230,24 @@ so
 
 .. figure:: media/packetinspector2.png
    :align: center
+   :width: 100%
 
 At the start of the simulation/at simulation time 0, both the high and the low priority app sends an UDP packet to lower layers. The Ethernet MAC starts transmitting the lower priority frame **TODO** why
 
 .. figure:: media/delay.png
+   :align: center
+   :width: 100%
+
+.. .. figure:: media/preemptive.png
+   :align: center
+   :width: 90%
+
+.. .. figure:: media/express.png
+   :align: center
+   :width: 90%
+
+.. figure:: media/preemptible2.png
+   :align: center
+
+.. figure:: media/express2.png
    :align: center
