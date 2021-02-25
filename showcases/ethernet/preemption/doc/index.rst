@@ -50,8 +50,8 @@ It contains two :ned:`StandardHost`'s connected with 100Mbps Ethernet, and also 
 There are three configurations in omnetpp.ini, for the following three cases:
 
 - **Default**: The baseline configuration (not using preemption or priority queues)/not using any latency reduction techniques
-- **PriorityQueue**: Uses priority queue in the Ethernet MAC; should have better delay for high priority frames/for lower delay for high priority frames
-- **Preemption**: Uses preemption for high priority frames; for even better delay/should have better delay than the priority queue case, because ongoing low priority frames can be interrupted/'s transmission doenst need to finish before sending the high priority frame
+- **PriorityQueue**: Uses priority queue in the Ethernet MAC for lower delay of high priority frames
+- **Preemption**: Uses preemption for high priority frames for even better delay than the priority queue case, because ongoing low priority frames can be interrupted/'s transmission doenst need to finish before sending the high priority frame
 
 In the ``General`` configuration, the hosts are configured to use the layered/composable ethernet model:
 
@@ -60,28 +60,33 @@ In the ``General`` configuration, the hosts are configured to use the layered/co
    :end-at: LayeredEthernetInterface
    :language: ini
 
-Also, we want to record a PCAP trace, so we can examine the traffic in Wireshark. We enable PCAP recording, and set the PCAP recorder to dump the Ethernet PHY frames; **TODO** CRC/FCS?
+Also, we want to record a PCAP trace, so we can examine the traffic in Wireshark. We enable PCAP recording, and set the PCAP recorder to dump the Ethernet PHY frames:
 
 .. literalinclude:: ../omnetpp.ini
    :start-at: recordPcap
-   :end-at: dumpProtocols
+   :end-at: fcsMode
    :language: ini
 
-**V1** One of the hosts, ``host1`` is configured to send UDP packets to ``host2``:
+.. **V1** One of the hosts, ``host1`` is configured to send UDP packets to ``host2``:
 
-**V2** For traffic generation, ``host1`` is configured to send UDP packets to ``host2``:
+.. **V2** For traffic generation, ``host1`` is configured to send UDP packets to ``host2``:
 
-**V3** To generate traffic, ``host1`` is configured to send UDP packets to ``host2``:
+To generate traffic, ``host1`` is configured to send UDP packets to ``host2``:
 
 .. literalinclude:: ../omnetpp.ini
    :start-at: numApps
    :end-at: app[1].io.destPort
    :language: ini
 
-There are two :ned:`UdpApp`'s in ``host1``, one generating background traffic and the other time-sensitive traffic. (The :ned:`UdpApp` is similar to `UdpBasicApp` in function, but it's built using generic protocol components for more flexibility/modularity.) **TODO** what is the outbound module? We configure the app's ``outbound`` module to be a PacketTagger, so we can tag packets with a VLAN ID requests, to put them in different priority categories.
+**V1** There are two :ned:`UdpApp`'s in ``host1``, one generating background traffic and the other time-sensitive traffic. (The :ned:`UdpApp` is similar to `UdpBasicApp` in function, but it's built using generic protocol components for more flexibility/modularity.) **TODO** what is the outbound module? We configure the app's ``outbound`` module to be a PacketTagger, so we can tag packets with a VLAN ID requests, to put them in different priority categories.
 **TODO** why
 
-**TODO** not so detailed
+**V2** There are two :ned:`UdpApp`'s in ``host1``, one generating background traffic and the other time-sensitive traffic. The UDP apps will put VLAN tags to the packets they create, and we'll use these tags to indicate traffic category for the lower layers/to be used by the Ethernet MAC.
+
+
+.. note:: The :ned:`UdpApp` is similar to `UdpBasicApp` in function, but it's modular, built using generic protocol components for more flexibility.) **TODO** not sure its needed at all
+
+.. **TODO** not so detailed
 
 We set up high background traffic (96 Mbps) and lower time-sensitive traffic (9.6 Mbps); both send 1200B packets:
 
@@ -90,7 +95,7 @@ We set up high background traffic (96 Mbps) and lower time-sensitive traffic (9.
    :end-at: app[1].source.productionInterval
    :language: ini
 
-In the **Default** configuration, no preemption or priority queue is used; the configuration just limits the EthernetMac's queue to decrease the measured end-to-end delay/to not include queueing time in the measured end-to-end delay:
+In the **Default** configuration, no preemption or priority queue is used; the configuration just limits the :ned:`EthernetMac`'s queue length to decrease to not include queueing time in the measured end-to-end delay:
 
 .. .. literalinclude:: ../omnetpp.ini
    :start-at: Config Default
@@ -102,7 +107,7 @@ In the **Default** configuration, no preemption or priority queue is used; the c
    :end-before: Config
    :language: ini
 
-In the **PriorityQueue** configuration, we change the queue type in the Mac layer from the default PacketQueue to PriorityQueue:
+In the **PriorityQueue** configuration, we change the queue type in the Mac layer from the default :ned:`PacketQueue` to :ned:`PriorityQueue`:
 
 .. .. literalinclude:: ../omnetpp.ini
    :start-at: Config PriorityQueue
@@ -115,6 +120,8 @@ In the **PriorityQueue** configuration, we change the queue type in the Mac laye
    :language: ini
 
 The priority queue needs two internal queues, for the two traffic categories; to not include queueing delay in the measured end-to-end delay, we also limit the internal queues, disable the buffer, and configure a packet dropper function. We configure the priority queue's classifier to classify packets based on the VLAN ID request. **TODO** why
+
+.. **TODO** we'll use VLAN tags to indicate the traffic categories. The UDP apps put VLAN tags to the packets they create, 
 
 **V1** In the **Preemption** configuration, we replace the :ned:`EthernetMacLayer` and :ned:`EthernetPhyLayer` modules default in :ned:`LayeredEthernetInterface` with :ned:`EthernetPreemptingMacLayer` and :ned:`EthernetPreemptingPhyLayer`; the latter support Ethernet preemption:
 
@@ -134,12 +141,12 @@ We also limit the queue, and configure a packet dropper function.
 Results
 -------
 
-In the case of the default configuration, the MAC stores packets in a FIFO queue.
+In the case of the `default` configuration, the MAC stores packets in a FIFO queue.
 Thus higher priority packets wait in line with the lower priority packets, before getting sent eventually.
 
-In the case of the priority queue configuration, higher priority frames wait in their own queue in the PriorityQueue module in the MAC. If there are high priority frames present in the queue, the MAC will send them next, after finishing the transmission of the current frame. High priority frames can be delayed, as the transmission of the current frame needs to finish before sending the high priority frame.
+In the case of the `priority queue` configuration, higher priority frames wait in their own queue in the PriorityQueue module in the MAC. If there are high priority frames present in the queue, the MAC will send them first, or after finishing the transmission of the current low priority frame. High priority frames can be delayed, as the transmission of the current frame needs to finish before sending the high priority frame.
 
-In the case of the preemption configuration, in addition to the higher priority frames having their own queue, the MAC immediatelly stops transmitting the current low priority frame, and sends the high priority frame.
+In the case of the `preemption` configuration, in addition to the higher priority frames having their own queue, the MAC immediatelly stops transmitting the current low priority frame, and sends the high priority frame.
 After the high priority frame transmission is complete, it sends the remaining fragment of the low priority frame.
 
 **TODO** remove duplicates
@@ -176,17 +183,23 @@ Here is a video of the preemption behavior:
 .. .. figure:: media/packetlog4.png
    :align: center
 
-.. figure:: media/packetlog5.png
-   :align: center
-   :width: 100%
-
 .. The transmission of ``background-3`` starts before the high priority frame arrives at the MAC.
 
 The Ethernet MAC in ``host1`` starts transmitting ``background-3``. While it is transmitting/the transmission is ongoing/during the transmission, a time-sensitive frame (``ts-1``) arrives at the MAC. The MAC interrupts the transmission of  ``background-3``; in the animation, ``background-3`` is first displayed as a whole frame, and changes to ``background-3 frag-0 progress`` when the high priority frame is available. Then there is the high priority frame transmission and then the remaining fragment of background-3 (frag1). **TODO**
 
 In the animation, background 3 is displayed as a whole frame at first, because the MAC plans to transmit it in one go. Then the ts-0 frame becomes available, and the transmission is interrupted; the frame in the animation changes to background3 frag0. After an interframe gap period, the ts-0 frame is sent. Then the remaining fragment.of background 3.
 
-In the packet log, background-3 is present as a whole frame (1254B), as the MAC was about to send it uninterrupted. When ts-0 becomes available, background-3 frag0 (x B) is logged.
+The same frame sequence as in the video is displayed in the Qtenv packet log:
+
+.. figure:: media/packetlog5.png
+   :align: center
+   :width: 100%
+
+**V1** In the packet log, background-3 is present as a whole frame (1254B), as the MAC was about to send it uninterrupted. When ts-0 becomes available, background-3 frag0 (x B) is logged.
+
+**V2** Entries are added to the packet log as they happen in the simulation. At first, ``background-3`` is logged as an uninterrupted frame. When the high priority frame becomes available, the frame changes to `background-3 frag-0`, and it's logged. Actually, only ``background-3 frag-0`` was sent before ``ts-0``.
+
+**V3** Entries are added to the packet log as they happen in the simulation. At first, background-3 is present as a whole frame (1254B), as the MAC was about to send it uninterrupted. When ts-0 becomes available, background-3 frag0 (583B) is logged.
 
 so
 
@@ -220,21 +233,29 @@ so
    + |3| + |4| +
    +-----+-----+
 
+The same frame sequence is displayed on a sequence chart on the following images, with a different frame selected and highlighted on each image. Note that the timeline is non-linear:
+
 .. figure:: media/seqchart4.png
    :align: center
    :width: 100%
 
-**V1**
+Note that just as in the packet log, the sequence chart contains the whole uninterrupted `background-3` frame, as it's logged when its transmission is started. This can be confusing, but it's actually the proper operation of the sequence chart tool. 
+
+There are actually two time dimensions present on the sequence chart: the events and messages as they happen at a moment, and what the modules "think" about the future, i.e. how long will a transmission take. In reality, the transmission might be interrupted and so both the original (background3) and the "updated" (background3 frag0) is present on the chart.
+
+**V1** Here is the frame sequence on a sequence chart on a linear timeline, with the background-3 frag-0 frame and highlighted:
 
 .. figure:: media/linear.png
    :align: center
    :width: 100%
 
-**V2**
+**V2** Here is the frame sequence on a sequence chart on a linear timeline:
 
 .. figure:: media/linear2.png
    :align: center
    :width: 100%
+
+**TODO** the background3 frag0 frame is just a minimum ethernet frame long
 
 .. figure:: media/wireshark.png
    :align: center
@@ -258,9 +279,21 @@ so
 
 At the start of the simulation/at simulation time 0, both the high and the low priority app sends an UDP packet to lower layers. The Ethernet MAC starts transmitting the lower priority frame **TODO** why
 
+The paths the high and low priority (express and preemptable) packets take in the :ned:`EthernetPreemptingMayLayer` is illustrated below:
+
+.. figure:: media/preemptible2.png
+   :align: center
+
+.. figure:: media/express2.png
+   :align: center
+
+We plot the mean end-to-end delay of the UDP packets for the three cases on the following chart:
+
 .. figure:: media/delay.png
    :align: center
    :width: 100%
+
+As expected, in the default case, the delay for the two priority categories are the same. The priority queue decreases the delay of the high priority frames and increases that of the low priority frames. Using preemption has a similar effect but its more effective/Using preemption produces a similar effect but more effective/Using preemption is even more effective in reducing delay of high priority frames.
 
 .. .. figure:: media/preemptive.png
    :align: center
@@ -269,9 +302,3 @@ At the start of the simulation/at simulation time 0, both the high and the low p
 .. .. figure:: media/express.png
    :align: center
    :width: 90%
-
-.. figure:: media/preemptible2.png
-   :align: center
-
-.. figure:: media/express2.png
-   :align: center
