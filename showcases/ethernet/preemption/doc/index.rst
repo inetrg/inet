@@ -34,53 +34,78 @@ In time-sensitive networking applications, Ethernet preemption can significantly
 
 .. **V1** Preemption is a feature of the composable Ethernet model in INET. It requires packet streaming so that packet transmission is represented as a stream so that it can be interrupted. The :ned:`EthernetPreemptingMacLayer` contains two MAC sub-layers, a preemptable (:ned:`EthernetStreamingMacLayer`) and an express mac layer (:ned:`EthernetFragmentingMacLayer`), each with its own queue for frames:
 
-------------------------------
+.. ------------------------------
 
-**V1** Preemption is a feature of the composable Ethernet model in INET. It makes use of the composable Ethernet model's support for packet streaming, so that packet transmission is represented as a stream which can be interrupted. The :ned:`EthernetPreemptingMacLayer` contains two MAC sub-layers, a preemptable (:ned:`EthernetFragmentingMacLayer`) and an express mac layer (:ned:`EthernetStreamingMacLayer`), each with its own queue for frames:
+   **V1** Preemption is a feature of the composable Ethernet model in INET. It makes use of the composable Ethernet model's support for packet streaming, so that packet transmission is represented as a stream which can be interrupted. The :ned:`EthernetPreemptingMacLayer` contains two MAC sub-layers, a preemptable (:ned:`EthernetFragmentingMacLayer`) and an express mac layer (:ned:`EthernetStreamingMacLayer`), each with its own queue for frames:
 
-TODO a nodeon belul streamel; macLayeren belul is streaming; phy layer is;
+   .. **TODO** a nodeon belul streamel; macLayeren belul is streaming; phy layer is;
 
-
-.. figure:: media/mac.png
-   :align: center
-
-.. **V2** Preemption is a feature of the composable Ethernet model in INET. It makes use of the composable Ethernet model's support for packet streaming, so that packet transmission is represented as a stream which can be interrupted.
-   As such, it reqires the composable Ethernet interface (:ned:`LayeredEthernetInterface`) with the following submodules: 
-
-.. It requires the following modules in the composable Ethernet interface (:ned:`LayeredEthernetInterface`)
-
-   - :ned:`EthernetPreemptingMacLayer`: The module contains two MAC sub-layers, a preemptable (:ned:`EthernetStreamingMacLayer`) and an express mac layer (:ned:`EthernetFragmentingMacLayer`), each with its own queue for frames:
 
    .. figure:: media/mac.png
       :align: center
 
-   - :ned:`EthernetPreemptingPhyLayer`: This module supports packet streaming.
+   .. **V2** Preemption is a feature of the composable Ethernet model in INET. It makes use of the composable Ethernet model's support for packet streaming, so that packet transmission is represented as a stream which can be interrupted.
+      As such, it reqires the composable Ethernet interface (:ned:`LayeredEthernetInterface`) with the following submodules: 
 
-Preemption requires the :ned:`EthernetPreemptingPhyLayer`. **TODO** its implemented in/needed for packet streaming
+   .. It requires the following modules in the composable Ethernet interface (:ned:`LayeredEthernetInterface`)
 
-------------------------------
+      - :ned:`EthernetPreemptingMacLayer`: The module contains two MAC sub-layers, a preemptable (:ned:`EthernetStreamingMacLayer`) and an express mac layer (:ned:`EthernetFragmentingMacLayer`), each with its own queue for frames:
 
-**V3** Preemption is a feature of the composable Ethernet model in INET. It makes use of the composable Ethernet model's support for packet streaming, so that packet transmission is represented as a stream which can be interrupted.
-As such, it reqires the composable Ethernet interface (:ned:`LayeredEthernetInterface`) with the following submodules: an :ned:`EthernetPreemptingMacLayer` and an :ned:`EthernetPreemptingPhyLayer`.
+      .. figure:: media/mac.png
+         :align: center
 
-TODO It uses intra-node packet streaming; preemptable maclayerbol jon a stream;
-preempting server mondja hogy stop es inditja el a masik macbol; ujrainditja a frame-et
-any given moment of time csak 1 frame lehet fragmentalva.
-a sceduleren keresztul értesul hogy van egy masik stream
-az IFG applied in the phy layer
+      - :ned:`EthernetPreemptingPhyLayer`: This module supports packet streaming.
+
+   Preemption requires the :ned:`EthernetPreemptingPhyLayer`. **TODO** its implemented in/needed for packet streaming
+
+.. ------------------------------
+
+   **V3** Preemption is a feature of the composable Ethernet model in INET. It makes use of the composable Ethernet model's support for packet streaming, so that packet transmission is represented as a stream which can be interrupted.
+   As such, it reqires the composable Ethernet interface (:ned:`LayeredEthernetInterface`) with the following submodules: an :ned:`EthernetPreemptingMacLayer` and an :ned:`EthernetPreemptingPhyLayer`.
+
+   **TODO** 
+
+   - It uses intra-node packet streaming; 
+   - preemptable maclayerbol jon a stream;
+   - preempting server mondja hogy stop es inditja el a masik macbol; 
+   - ujrainditja a frame-et
+   - any given moment of time csak 1 frame lehet fragmentalva.
+   - a sceduleren keresztul értesul hogy van egy masik stream
+   - az IFG applied in the phy layer
+
+.. **V4** Preemption is a feature of INET's composable Ethernet model. It uses packet streaming, so that packet transmission is represented as a stream which can be interrupted.
+
+Preemption is a feature of INET's composable Ethernet model. It uses packet streaming, so that packet transmission is represented as a stream which can be interrupted. Preemption requires the :ned:`LayeredEthernetInterface` (containing MAC and PHY layers, displayed below).
+
+.. figure:: media/LayeredEthernetInterface2.png
+   :align: center
+
+To enable preemption, the default submodules :ned:`EthernetMacLayer` and :ned:`EthernetPhyLayer` need to be replaced with :ned:`EthernetPreemptingMacLayer` and :ned:`EthernetPreemptingPhyLayer`.
 
 .. It requires the following modules in the composable Ethernet interface (:ned:`LayeredEthernetInterface`)
 
-The :ned:`EthernetPreemptingMacLayer` contains two MAC sub-layers, a preemptable (:ned:`EthernetStreamingMacLayer`) and an express mac layer (:ned:`EthernetFragmentingMacLayer`), each with its own queue for frames:
+The :ned:`EthernetPreemptingMacLayer` contains two sub-MAC-layer submodules, a preemptable (:ned:`EthernetStreamingMacLayer`) and an express MAC layer (:ned:`EthernetFragmentingMacLayer`), each with its own queue for frames:
 
 .. figure:: media/mac.png
    :align: center
 
-The :ned:`EthernetPreemptingPhyLayer` supports packet streaming.
+:ned:`EthernetPreemptingMacLayer` uses intra-node packet streaming. Discrete packets come in the MAC module from the higher layers, but the sub-MAC-layers (express and preemptable) output packet streams. Packets continue as streams out of the MAC layer, through the PHY layer and out the Ethernet connection.
 
-TODO supports streaming and fragmenting (which is tobb darabban kuld el csomagokat)
+**V1** During preemption, packets initially stream from the preemptable sub-mac-layer. The scheduler notifies the preempting server when a packet arrives at the express mac. The server stops the preemptable stream, sends the express stream, and then it restarts the preemptable steam.
 
-------------------------------
+**V2** Here is an example for the preemption process:
+
+- packets initially stream from the preemptable sub-mac-layer
+- The scheduler notifies the preempting server when a packet arrives at the express mac
+- The server stops the preemptable stream, sends the express stream, and then it restarts the preemptable steam
+
+Interframe gaps between the packets are applied/inserted at the PHY layer. Note that only one frame can be fragmented at any given moment.
+
+The :ned:`EthernetPreemptingPhyLayer` supports packet streaming and fragmenting (sending packets in multiple fragments).
+
+.. **TODO** supports streaming and fragmenting (which is tobb darabban kuld el csomagokat)
+
+.. ------------------------------
 
 .. **TODO** `not here?` Preemption requires the :ned:`EthernetPreemptingPhyLayer`. **TODO** its implemented in/needed for packet streaming
 
@@ -101,7 +126,7 @@ There are three configurations in omnetpp.ini, for the following three cases:
 - **PriorityQueue**: Uses priority queue in the Ethernet MAC for lower delay of high priority frames
 - **Preemption**: Uses preemption for high priority frames for even lower delay than the priority queue case, because the ongoing transmission of low priority frames doens't need to finish before sending the high priority frame
 
-In the ``General`` configuration, the hosts are configured to use the layered/composable ethernet model instead of the default, which must be disabled:
+In the ``General`` configuration, the hosts are configured to use the layered ethernet model instead of the default, which must be disabled:
 
 .. literalinclude:: ../omnetpp.ini
    :start-at: encap.typename
@@ -127,14 +152,14 @@ To generate traffic, ``host1`` is configured to send UDP packets to ``host2``:
    :language: ini
 
 
-------------------------------
+.. ------------------------------
 
-**V1** There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic and the other time-sensitive traffic. (The :ned:`UdpApp` is similar to `UdpBasicApp` in function, but it's built using generic protocol components for more flexibility/modularity.) **TODO** what is the outbound module? We configure the app's ``outbound`` module to be a PacketTagger, so we can tag packets with a VLAN ID requests, to put them in different priority categories.
-**TODO** why
+   **V1** There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic and the other time-sensitive traffic. (The :ned:`UdpApp` is similar to `UdpBasicApp` in function, but it's built using generic protocol components for more flexibility/modularity.) **TODO** what is the outbound module? We configure the app's ``outbound`` module to be a PacketTagger, so we can tag packets with a VLAN ID requests, to put them in different priority categories.
+   **TODO** why
 
-------------------------------
+   ------------------------------
 
-**V2!* There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic and the other time-sensitive traffic. The UDP apps put VLAN tags on the packets, and the Ethernet MAC uses these tags to classify traffic into high and low priorities.
+There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic and the other time-sensitive traffic. The UDP apps put VLAN tags on the packets, and the Ethernet MAC uses these tags to classify traffic into high and low priorities.
 
 
 .. .. note:: The :ned:`UdpApp` is similar to `UdpBasicApp` in function, but it's modular, built using generic protocol components for more flexibility.) **TODO** not sure its needed at all
@@ -193,6 +218,8 @@ TODO there is no priority queue; there are queues in the two submacs; lehet a me
    :start-at: Config Preemption
    :language: ini
 
+.. note:: There is no priority queue in this configuration, but the sub-mac-layer modules each have their own queue. It is also possible to disable these internal queues and have just one shared queue in the EthernetPreemptableMac module.
+
 We also limit the queue, and configure a packet dropper function. TODO
 
 Results
@@ -242,9 +269,9 @@ Here is a video of the preemption behavior:
 
 .. The transmission of ``background-3`` starts before the high priority frame arrives at the MAC.
 
-**V1!** The Ethernet MAC in ``host1`` starts transmitting ``background-3``. During the transmission, a time-sensitive frame (``ts-1``) arrives at the MAC. The MAC interrupts the transmission of  ``background-3``; in the animation, ``background-3`` is first displayed as a whole frame, and changes to ``background-3 frag-0 progress`` when the high priority frame is available. Then there is the high priority frame transmission and then the remaining fragment of background-3 (frag1)./After transmitting the high priority frame, the remaining fragment of background-3 (frag1) is transmitted.**TODO**
+The Ethernet MAC in ``host1`` starts transmitting ``background-3``. During the transmission, a time-sensitive frame (``ts-1``) arrives at the MAC. The MAC interrupts the transmission of  ``background-3``; in the animation, ``background-3`` is first displayed as a whole frame, and changes to ``background-3 frag-0 progress`` when the high priority frame is available. Then there is the high priority frame transmission and then the remaining fragment of background-3 (frag1)./After transmitting the high priority frame, the remaining fragment of background-3 (frag1) is transmitted.**TODO**
 
-**V2** In the animation, background 3 is displayed as a whole frame (as opposed to a fragment) at first, because the MAC plans to transmit it in one go. Then the ts-0 frame becomes available, and the transmission is interrupted; the frame in the animation changes to background3 frag0. After an interframe gap period, the ts-0 frame is sent. Then the remaining fragment.of background 3.
+.. **V2** In the animation, background 3 is displayed as a whole frame (as opposed to a fragment) at first, because the MAC plans to transmit it in one go. Then the ts-0 frame becomes available, and the transmission is interrupted; the frame in the animation changes to background3 frag0. After an interframe gap period, the ts-0 frame is sent. Then the remaining fragment.of background 3.
 
 The same frame sequence as in the video is displayed in the Qtenv packet log:
 
