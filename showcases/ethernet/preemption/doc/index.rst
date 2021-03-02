@@ -27,6 +27,9 @@ This showcase demonstrates Ethernet preemption and examines the latency reductio
 The Model
 ---------
 
+Overview
+~~~~~~~~
+
 .. **V1** In time-sensitive networking applications, Ethernet preemption can significantly reduce latency. When a high priority frame becomes available during the transmission of a low priority frame, the Ethernet MAC can interrupt the transmission of the low priority frame. After sending the high priority frame, the MAC continues the transmission of the low priority frame from where it left off, eventually sending the low priority frame in two (or more) fragments.
 
 In time-sensitive networking applications, Ethernet preemption can significantly reduce latency. When a high priority frame becomes available during the transmission of a low priority frame, the Ethernet MAC can interrupt the transmission of the low priority frame, and start sending the high priority frame instead. The MAC can continue transmission of the low priority frame from where it left off, eventually sending the low priority frame in two (or more) fragments.
@@ -75,7 +78,7 @@ In time-sensitive networking applications, Ethernet preemption can significantly
 
 .. **V4** Preemption is a feature of INET's composable Ethernet model. It uses packet streaming, so that packet transmission is represented as a stream which can be interrupted.
 
-Preemption is a feature of INET's composable Ethernet model. It uses packet streaming, so that packet transmission is represented as a stream which can be interrupted. Preemption requires the :ned:`LayeredEthernetInterface` (containing MAC and PHY layers, displayed below).
+Preemption is a feature of INET's composable Ethernet model. It uses packet streaming, so that packet transmission is represented as a stream which can be interrupted. Preemption requires the :ned:`LayeredEthernetInterface`, which contains a MAC and a PHY layer, displayed below:
 
 .. figure:: media/LayeredEthernetInterface2.png
    :align: center
@@ -99,9 +102,9 @@ The :ned:`EthernetPreemptingMacLayer` contains two sub-MAC-layer submodules, a p
 - The scheduler notifies the preempting server when a packet arrives at the express mac
 - The server stops the preemptable stream, sends the express stream, and then it restarts the preemptable steam
 
-Interframe gaps between the packets are applied/inserted at the PHY layer. Note that only one frame can be fragmented at any given moment.
+Interframe gaps between the packets are inserted by the PHY layer. Note that only one frame can be fragmented at any given moment.
 
-The :ned:`EthernetPreemptingPhyLayer` supports packet streaming and fragmenting (sending packets in multiple fragments).
+The :ned:`EthernetPreemptingPhyLayer` supports both packet streaming and fragmenting (sending packets in multiple fragments).
 
 .. **TODO** supports streaming and fragmenting (which is tobb darabban kuld el csomagokat)
 
@@ -113,6 +116,9 @@ The :ned:`EthernetPreemptingPhyLayer` supports packet streaming and fragmenting 
 
 .. Preemption requires packet streaming so that packet transmission is represented as a stream so that it can be interrupted.
 
+Configuration
+~~~~~~~~~~~~~
+
 The simulation uses the following network:
 
 .. figure:: media/network.png
@@ -122,7 +128,7 @@ It contains two :ned:`StandardHost`'s connected with 100Mbps Ethernet, and also 
 
 There are three configurations in omnetpp.ini, for the following three cases:
 
-- **Default**: The baseline configuration (not using preemption or priority queues)/not using any latency reduction techniques
+- **Default**: The baseline configuration; doesn't use any latency reduction techniques
 - **PriorityQueue**: Uses priority queue in the Ethernet MAC for lower delay of high priority frames
 - **Preemption**: Uses preemption for high priority frames for even lower delay than the priority queue case, because the ongoing transmission of low priority frames doens't need to finish before sending the high priority frame
 
@@ -203,9 +209,9 @@ The priority queue needs two internal queues, for the two traffic categories; to
 
 .. **TODO** we'll use VLAN tags to indicate the traffic categories. The UDP apps put VLAN tags to the packets they create, 
 
-In the **Preemption** configuration, we replace the :ned:`EthernetMacLayer` and :ned:`EthernetPhyLayer` modules default in :ned:`LayeredEthernetInterface` with :ned:`EthernetPreemptingMacLayer` and :ned:`EthernetPreemptingPhyLayer`, which support preemption:
+In the **Preemption** configuration, we replace the :ned:`EthernetMacLayer` and :ned:`EthernetPhyLayer` modules default in :ned:`LayeredEthernetInterface` with :ned:`EthernetPreemptingMacLayer` and :ned:`EthernetPreemptingPhyLayer`, which support preemption.
 
-TODO there is no priority queue; there are queues in the two submacs; lehet a merged macben is shared queue; 
+.. TODO there is no priority queue; there are queues in the two submacs; lehet a merged macben is shared queue; 
 
 .. **V2** In the **Preemption** configuration, we replace the default MAC and PHY layer submodules of :ned:`LayeredEthernetInterface` (:ned:`EthernetMacLayer` and :ned:`EthernetPhyLayer`) with :ned:`EthernetPreemptingMacLayer` and :ned:`EthernetPreemptingPhyLayer`, which support preemption.
 
