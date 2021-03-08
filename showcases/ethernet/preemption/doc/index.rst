@@ -126,11 +126,29 @@ The simulation uses the following network:
 
 It contains two :ned:`StandardHost`'s connected with 100Mbps Ethernet, and also a :ned:`PcapRecorder` to record PCAP traces.
 
-There are three configurations in omnetpp.ini, for the following three cases:
+---------------------------
+
+**V1** There are three configurations in omnetpp.ini, for the following three cases:
 
 - **Default**: The baseline configuration; doesn't use any latency reduction techniques
 - **PriorityQueue**: Uses priority queue in the Ethernet MAC for lower delay of high priority frames
 - **Preemption**: Uses preemption for high priority frames for even lower delay than the priority queue case, because the ongoing transmission of low priority frames doens't need to finish before sending the high priority frame
+
+Primarily, we run these simulations with the same packet length for the low and high priority traffic, so that transmission delay is the same for the two. This way the end-to-end delay can be compared. Additionally, we demonstrate the three cases with more realistic traffic (longer low priority and shorter high priority frames); these simulations are the extension of the three mentioned above, and are defined in the configurations with the **Realistic** prefix.
+
+---------------------------
+
+**V2** Primarily, we run simulations with the same packet length for the low and high priority traffic, so that transmission delay is the same for the two. This way the end-to-end delay can be compared. There are three configurations in omnetpp.ini, for the following three cases:
+
+Primarily, we run simulations with the same packet length for the low and high priority traffic, so that end-to-end delay can be compared in the following three cases/three configurations in omnetpp.ini:
+
+- **Default**: The baseline configuration; doesn't use any latency reduction techniques
+- **PriorityQueue**: Uses priority queue in the Ethernet MAC for lower delay of high priority frames
+- **Preemption**: Uses preemption for high priority frames for even lower delay than the priority queue case, because the ongoing transmission of low priority frames doens't need to finish before sending the high priority frame
+
+Additionally, we demonstrate the three cases with more realistic traffic (longer low priority and shorter high priority frames); these simulations are the extension of the three mentioned above, and are defined in ini file as the configurations with the **Realistic** prefix.
+
+---------------------------
 
 In the ``General`` configuration, the hosts are configured to use the layered ethernet model instead of the default, which must be disabled:
 
@@ -181,7 +199,11 @@ We set up high background traffic (96 Mbps) and lower time-sensitive traffic (9.
    :end-at: app[1].source.productionInterval
    :language: ini
 
-In the **Default** configuration, no preemption or priority queue is used; the configuration just limits the :ned:`EthernetMac`'s queue length to not include queueing time in the measured end-to-end delay **TODO** false:
+.. note:: Both UDP apps send packets with the same length so that transmission time for both priorities are the same; this way the the delay for the different configurations can be compared.
+
+In the **Default** configuration, no preemption or priority queue is used; the configuration just limits the :ned:`EthernetMac`'s queue length to 4. The queues need to be short to decrease the queueing time's effect on the measured delay. However, if they are too short, they might be empty too often, which renders the priority queue useless (it cannot prioritize if it contains just one packet, for example). The queue length of 4 is an arbitrary choice. The queue type is set to :ned:`DropTailQueue` so that it can drop packets if the queue is full:
+
+.. not include queueing time in the measured end-to-end delay **TODO** false:
 
 .. .. literalinclude:: ../omnetpp.ini
    :start-at: Config Default
@@ -205,7 +227,7 @@ In the **PriorityQueue** configuration, we change the queue type in the Mac laye
    :end-before: Config
    :language: ini
 
-The priority queue needs two internal queues, for the two traffic categories; to not include queueing delay in the measured end-to-end delay, we also limit the internal queues, disable the shared buffer, and configure a packet dropper TODO function. We configure the priority queue's classifier to classify packets based on the VLAN ID request, which indicates the traffic category.
+The priority queue needs two internal queues, for the two traffic categories; to limit the queueing time's effect on the measured end-to-end delay, we also configure the length of internal queues to be 4. We also disable the shared buffer, and configure a the queue type to be :ned:`DropTailQueue`. We configure the priority queue's classifier to classify packets based on the VLAN ID request, which indicates the traffic category.
 
 .. **TODO** we'll use VLAN tags to indicate the traffic categories. The UDP apps put VLAN tags to the packets they create, 
 
@@ -222,11 +244,27 @@ In the **Preemption** configuration, we replace the :ned:`EthernetMacLayer` and 
 
 .. literalinclude:: ../omnetpp.ini
    :start-at: Config Preemption
+   :end-at: DropTailQueue
    :language: ini
 
 .. note:: There is no priority queue in this configuration, but the sub-mac-layer modules each have their own queue. It is also possible to disable these internal queues and have just one shared queue in the EthernetPreemptableMac module.
 
-We also limit the queue, and configure a packet dropper function. TODO
+We also limit the queue length to 4, and configure the queue type to be :ned:`DropTailQueue`.
+
+We use the following traffic for the ``RealisticDefault``, ``RealisticPriorityQueue`` and ``RealisticPreemption`` configurations:
+
+.. literalinclude:: ../omnetpp.ini
+   :start-after: Config RealisticBase
+   :end-before: Config RealisticDefault
+   :language: ini
+
+**TODO**
+
+so
+
+- the same 1200B packets is not very realistic in TSN networks
+- more like sporadic short frames for high priority
+- and more frequent longer frames for low priority
 
 Results
 -------
@@ -356,15 +394,21 @@ Just as in the packet log, the sequence chart contains the whole uninterrupted `
 
 **TODO** the background3 frag0 frame is just a minimum ethernet frame long
 
+Here is the same frame sequence displayed in Wireshark:
+
 .. figure:: media/wireshark.png
    :align: center
    :width: 100%
 
-- wireshark displays fragmented ethernet frames weirdly
-- the two fragments are 5 and 7
-- the reassembled frame is 6
-- the sum of the sizes of 5 + 7 (583 + 683) is 1266
-- its more than the unfragmented frame size (1254) because there are two ethernet headers/more headers
+.. In the Wireshark log, ``frame 5`` is the first fragment of ``background-3``. Note that FPP refers to `Frame Preemption Protocol`. 
+
+In the Wireshark log, ``frame 5`` and ``frame 7`` are the two fragments of ``background-3``. Note that FPP refers to `Frame Preemption Protocol`; ``frame 6`` is ``ts-1``, sent between the two fragments.
+
+.. - wireshark displays fragmented ethernet frames weirdly
+   - the two fragments are 5 and 7
+   - the reassembled frame is 6
+   - the sum of the sizes of 5 + 7 (583 + 683) is 1266
+   - its more than the unfragmented frame size (1254) because there are two ethernet headers/more headers
 
 .. .. figure:: media/inspector.png
    :align: center
@@ -401,7 +445,7 @@ The paths the high and low priority (express and preemptable) packets take in th
 .. figure:: media/express2.png
    :align: center
 
-We plot the mean end-to-end delay of the UDP packets for the three cases on the following chart:
+We plot the mean end-to-end delay of the UDP packets for the three cases on the following chart; note that the configuration is indicated with line style, the priority category with color:
 
 .. figure:: media/delay.png
    :align: center
@@ -416,3 +460,13 @@ As expected, in the default case, the delay for the two priority categories are 
 .. .. figure:: media/express.png
    :align: center
    :width: 90%
+
+**TODO** realistic
+
+.. figure:: media/realisticdelay.png
+   :align: center
+   :width: 100%
+
+.. figure:: media/realisticdelay_zoomed.png
+   :align: center
+   :width: 100%

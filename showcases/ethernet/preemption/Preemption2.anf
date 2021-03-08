@@ -7178,7 +7178,7 @@ fixlegend(ax1, True)
 
 numpackets = packetCap
 
-plt.title("Mean end-to-end delay; asymmetric traffic, packetCapacity=" + str(numpackets))
+plt.title("Mean end-to-end delay; realistic traffic, packetCapacity=" + str(numpackets))
 
 ax2 = plt.subplot(212)
 

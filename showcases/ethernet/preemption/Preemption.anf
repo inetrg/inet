@@ -12253,6 +12253,7 @@ from omnetpp.scave import results, chart, utils, plot, vectorops as ops
 import matplotlib.pyplot as plt
 import re
 from matplotlib.lines import Line2D
+import matplotlib.patches as patches
 
 def plot_vectors_(df, props):
     print("XXXX")
@@ -12390,7 +12391,25 @@ plt.legend(handle, label, markerscale=4, ncol=columns)
 
 plt.title("Mean end-to-end delay; realistic traffic, packetCapacity=4")
 
-plt.savefig('realisticdelay.png', dpi=150, transparent=True)
+xmin = 0.41
+xmax = 0.82
+ymin = 0.24
+ymax = 0.27
+
+zoomed = False
+add_rectangle = True
+
+if zoomed:
+    plt.xlim(xmin,xmax)
+    plt.ylim(ymin,ymax)
+    plt.savefig('realisticdelay_zoomed.png', dpi=150, transparent=True)
+else:
+    if add_rectangle:
+        w = xmax - xmin
+        h = ymax - ymin
+        rect=patches.Rectangle((xmin,ymin),w,h, fill=False, alpha=1, color="black", linewidth=1, edgecolor = "black", zorder=10, facecolor=None)
+        plt.gca().add_patch(rect)
+    plt.savefig('realisticdelay.png', dpi=150, transparent=True)
 
 utils.export_image_if_needed(props)
 utils.export_data_if_needed(df, props)
