@@ -130,11 +130,11 @@ It contains two :ned:`StandardHost`'s connected with 100Mbps Ethernet, and also 
 
 **V1** There are three configurations in omnetpp.ini, for the following three cases:
 
-- **Default**: The baseline configuration; doesn't use any latency reduction techniques
-- **PriorityQueue**: Uses priority queue in the Ethernet MAC for lower delay of high priority frames
-- **Preemption**: Uses preemption for high priority frames for even lower delay than the priority queue case, because the ongoing transmission of low priority frames doens't need to finish before sending the high priority frame
+- ``Default``: The baseline configuration; doesn't use any latency reduction techniques
+- ``PriorityQueue``: Uses priority queue in the Ethernet MAC for lower delay of high priority frames
+- ``Preemption``: Uses preemption for high priority frames for even lower delay than the priority queue case, because the ongoing transmission of low priority frames doens't need to finish before sending the high priority frame
 
-Primarily, we run these simulations with the same packet length for the low and high priority traffic, so that transmission delay is the same for the two. This way the end-to-end delay can be compared. Additionally, we demonstrate the three cases with more realistic traffic (longer low priority and shorter high priority frames); these simulations are the extension of the three mentioned above, and are defined in the configurations with the **Realistic** prefix.
+Primarily, we run these simulations with the same packet length for the low and high priority traffic, so that transmission delay is the same for the two. This way the end-to-end delay can be compared. Additionally, we demonstrate the three cases with more realistic traffic (longer low priority and shorter high priority frames); these simulations are the extension of the three mentioned above, and are defined in the configurations with the ``Realistic`` prefix.
 
 ---------------------------
 
@@ -142,11 +142,11 @@ Primarily, we run these simulations with the same packet length for the low and 
 
 Primarily, we run simulations with the same packet length for the low and high priority traffic, so that end-to-end delay can be compared in the following three cases/three configurations in omnetpp.ini:
 
-- **Default**: The baseline configuration; doesn't use any latency reduction techniques
-- **PriorityQueue**: Uses priority queue in the Ethernet MAC for lower delay of high priority frames
-- **Preemption**: Uses preemption for high priority frames for even lower delay than the priority queue case, because the ongoing transmission of low priority frames doens't need to finish before sending the high priority frame
+- ``Default``: The baseline configuration; doesn't use any latency reduction techniques
+- ``PriorityQueue``: Uses priority queue in the Ethernet MAC for lower delay of high priority frames
+- ``Preemption``: Uses preemption for high priority frames for even lower delay than the priority queue case, because the ongoing transmission of low priority frames doens't need to finish before sending the high priority frame
 
-Additionally, we demonstrate the three cases with more realistic traffic (longer low priority and shorter high priority frames); these simulations are the extension of the three mentioned above, and are defined in ini file as the configurations with the **Realistic** prefix.
+Additionally, we demonstrate the three cases with more realistic traffic (longer low priority and shorter high priority frames); these simulations are the extension of the three mentioned above, and are defined in ini file as the configurations with the ``Realistic`` prefix.
 
 ---------------------------
 
@@ -201,7 +201,7 @@ We set up high background traffic (96 Mbps) and lower time-sensitive traffic (9.
 
 .. note:: Both UDP apps send packets with the same length so that transmission time for both priorities are the same; this way the the delay for the different configurations can be compared.
 
-In the **Default** configuration, no preemption or priority queue is used; the configuration just limits the :ned:`EthernetMac`'s queue length to 4. The queues need to be short to decrease the queueing time's effect on the measured delay. However, if they are too short, they might be empty too often, which renders the priority queue useless (it cannot prioritize if it contains just one packet, for example). The queue length of 4 is an arbitrary choice. The queue type is set to :ned:`DropTailQueue` so that it can drop packets if the queue is full:
+In the ``Default`` configuration, no preemption or priority queue is used; the configuration just limits the :ned:`EthernetMac`'s queue length to 4. The queues need to be short to decrease the queueing time's effect on the measured delay. However, if they are too short, they might be empty too often, which renders the priority queue useless (it cannot prioritize if it contains just one packet, for example). The queue length of 4 is an arbitrary choice. The queue type is set to :ned:`DropTailQueue` so that it can drop packets if the queue is full:
 
 .. not include queueing time in the measured end-to-end delay **TODO** false:
 
@@ -215,7 +215,7 @@ In the **Default** configuration, no preemption or priority queue is used; the c
    :end-before: Config
    :language: ini
 
-In the **PriorityQueue** configuration, we change the queue type in the Mac layer from the default :ned:`PacketQueue` to :ned:`PriorityQueue`:
+In the ``PriorityQueue`` configuration, we change the queue type in the Mac layer from the default :ned:`PacketQueue` to :ned:`PriorityQueue`:
 
 .. .. literalinclude:: ../omnetpp.ini
    :start-at: Config PriorityQueue
@@ -231,7 +231,7 @@ The priority queue needs two internal queues, for the two traffic categories; to
 
 .. **TODO** we'll use VLAN tags to indicate the traffic categories. The UDP apps put VLAN tags to the packets they create, 
 
-In the **Preemption** configuration, we replace the :ned:`EthernetMacLayer` and :ned:`EthernetPhyLayer` modules default in :ned:`LayeredEthernetInterface` with :ned:`EthernetPreemptingMacLayer` and :ned:`EthernetPreemptingPhyLayer`, which support preemption.
+In the ``Preemption`` configuration, we replace the :ned:`EthernetMacLayer` and :ned:`EthernetPhyLayer` modules default in :ned:`LayeredEthernetInterface` with :ned:`EthernetPreemptingMacLayer` and :ned:`EthernetPreemptingPhyLayer`, which support preemption.
 
 .. TODO there is no priority queue; there are queues in the two submacs; lehet a merged macben is shared queue; 
 
@@ -258,24 +258,28 @@ We use the following traffic for the ``RealisticDefault``, ``RealisticPriorityQu
    :end-before: Config RealisticDefault
    :language: ini
 
-**TODO**
+.. **TODO**
 
-so
+   so
 
-- the same 1200B packets is not very realistic in TSN networks
-- more like sporadic short frames for high priority
-- and more frequent longer frames for low priority
+   - the same 1200B packets is not very realistic in TSN networks
+   - more like sporadic short frames for high priority
+   - and more frequent longer frames for low priority
+
+In this traffic configuration, high priority packets are a 100 times less frequent, and have 1/10th of the size of low priority packets. (which is more in line how it is in reality) **TODO**
 
 Results
 -------
 
-In the case of the `default` configuration, the MAC stores packets in a FIFO queue.
+In the case of the ``Default`` configuration, the MAC stores packets in a FIFO queue.
 Thus higher priority packets wait in line with the lower priority packets, before getting sent eventually.
 
-In the case of the `priority queue` configuration, higher priority frames wait in their own sub-queue in the PriorityQueue module in the MAC. If there are high priority frames present in the queue, the MAC will send them first, or after finishing the transmission of the current low priority frame. High priority frames can be delayed, as the transmission of the current frame needs to finish before sending the high priority frame.
+In the case of the ``PriorityQueue`` configuration, higher priority frames wait in their own sub-queue in the PriorityQueue module in the MAC. If there are high priority frames present in the queue, the MAC will send them first, or after finishing the transmission of the current low priority frame. High priority frames can be delayed, as the transmission of the current frame needs to finish before sending the high priority frame.
 
-In the `preemption` configuration, in addition to the higher priority frames having their own queue, the MAC immediatelly stops transmitting the current low priority frame, and sends the high priority frame instead.
+In the ``Preemption`` configuration, in addition to the higher priority frames having their own queue, the MAC immediatelly stops transmitting the current low priority frame, and sends the high priority frame instead.
 After the high priority frame transmission is complete, it sends the remaining fragment of the low priority frame.
+
+**TODO** for even better delay
 
 **TODO** remove duplicates
 
@@ -314,6 +318,24 @@ Here is a video of the preemption behavior:
 .. The transmission of ``background-3`` starts before the high priority frame arrives at the MAC.
 
 The Ethernet MAC in ``host1`` starts transmitting ``background-3``. During the transmission, a time-sensitive frame (``ts-1``) arrives at the MAC. The MAC interrupts the transmission of  ``background-3``; in the animation, ``background-3`` is first displayed as a whole frame, and changes to ``background-3 frag-0 progress`` when the high priority frame is available. Then there is the high priority frame transmission and then the remaining fragment of background-3 (frag1)./After transmitting the high priority frame, the remaining fragment of background-3 (frag1) is transmitted.**TODO**
+
+so
+
+- the background-3 frame is updated three times
+- first it starts sending as a complete unfragmented frame
+- when the time sensitive frame arrives at the Ethernet MAC, background-3 becomes background-3 frag-0:progess
+- actually, the Ethernet MAC immediatelly stops transmitting the frame; background-3 frag-0 is very short, it is just an FCS at the frame's end. The end of fragment 0 is background3-frag0:end
+- these updates are present on all displays which displays the frame on the fly, i.e. the packet log, the animation, and the sequence chart. These contain the whole unfragmented frame, and the two fragments as well. The frame is written to the PCAP file after the transmission, so it contains background3 as it was sent, not how the MAC thought it would send it at the time
+
+In some inspectors, frames are displayed as they happen in the simulation. These inspectors include the animation and the packet log in Qtenv, and the event log file/sequence chart tool. In these the background3 frame is notified/logged/displayed/recorded three times:
+
+- at the start of transmission, when the MAC still intended to send the frame unfragmented (background3:start)
+- when the time sensitive frame arrives at the Ethernet MAC; the frame becomes background3-frag0:progess (the MAC actually stops transmitting the frame sending an FCS)
+- the end of background3-frag0
+
+So from the packet log and the sequence chart it might seem that a 1200B packet was sent, as it was logged. This can be confusing, but it's actually the proper operation of the packet log and the sequence chart tool.
+
+However, the frames are recorded in the PCAP file after the transmission in the simulation, so that the 1200B frame is not present there./only the two fragments
 
 .. **V2** In the animation, background 3 is displayed as a whole frame (as opposed to a fragment) at first, because the MAC plans to transmit it in one go. Then the ts-0 frame becomes available, and the transmission is interrupted; the frame in the animation changes to background3 frag0. After an interframe gap period, the ts-0 frame is sent. Then the remaining fragment.of background 3.
 
@@ -392,7 +414,7 @@ Just as in the packet log, the sequence chart contains the whole uninterrupted `
 
 ------------------------------
 
-**TODO** the background3 frag0 frame is just a minimum ethernet frame long
+**TODO** the background3 frag0 frame is just a minimum ethernet frame long -> its just an FCS
 
 Here is the same frame sequence displayed in Wireshark:
 
@@ -461,7 +483,9 @@ As expected, in the default case, the delay for the two priority categories are 
    :align: center
    :width: 90%
 
-**TODO** realistic
+.. **TODO** realistic
+
+The mean end-to-end delay for the realistic traffic case is plotted on the following charts (the range indicated by thge rectangle in the first chart is shown zoomed in on the second, so that its more visible):
 
 .. figure:: media/realisticdelay.png
    :align: center
@@ -470,3 +494,24 @@ As expected, in the default case, the delay for the two priority categories are 
 .. figure:: media/realisticdelay_zoomed.png
    :align: center
    :width: 100%
+
+.. The delay for preemption is the same as in the comparable length packet case. This is expected, because when preemption is used, the currently transmitting packet is interrupted as soon as a high priority frame becomes available, regardless of the low priority frame's length. **TODO**
+
+The delay for preemption is about the transmission duration of a time sensitive frame in case of both the realistic and the comparable length traffic. This is expected, because when preemption is used, the currently transmitting packet is interrupted as soon as a high priority frame becomes available, regardless of the low priority frame's length.
+
+In these charts, the delay of the time sensitive frames in all cases is better than in the comparable packet length case, and that of the background frames is worse. But its because the queues are emptier. **TODO** ?
+
+.. Here is part of the above chart zoomed in (the displayed range is indicated by the rectangle in the above chart), so that its more visible:
+
+**TODO**
+
+- in case of the default, if the queues are not empty, the delay should be about the same
+- in case of the priority queue, the queues are not empty, so there is always a frame in the background queue;
+  the incoming time sensitive frame needs to wait -> about half a frame on average
+- in case of the preemption, the delay is the transmission duration + interframe gap
+
+in the case of the priority queue, there is always a frame in the background queue, so there is always a transmission. The time sensitive frame needs to wait until the background frame transmission finishes; on average, the remaining duration is half the transmission duration. This is about TODO
+
+in case of the default, the queues are not empty, so the delay for the background and time sensitive frames is about the same.
+
+in case of the preemption, the delay is the transmission duration + an interframe gap
