@@ -129,7 +129,7 @@ class PacketProtocolTag extends ProtocolTagBase
 }
 
 cplusplus(PacketProtocolTag) {{
-    void set(const Protocol *protocol, b frontOffset = b(0), b backOffset = b(0)) {
+    void setProtocol(const Protocol *protocol, b frontOffset = b(0), b backOffset = b(0)) {
         this->protocol = protocol;
         this->frontOffset = frontOffset;
         this->backOffset = backOffset;
