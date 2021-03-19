@@ -74,7 +74,6 @@ void Ieee8021qTagEpdHeaderInserter::processPacket(Packet *packet)
         header->setTypeOrLength(ProtocolGroup::ethertype.findProtocolNumber(protocol));
     packet->insertAtFront(header);
     packetProtocolTag->setProtocol(qtagProtocol);
-    packetProtocolTag->setFrontOffset(b(0));
     if (nextProtocol != nullptr)
         packet->addTagIfAbsent<DispatchProtocolReq>()->setProtocol(nextProtocol);
 }

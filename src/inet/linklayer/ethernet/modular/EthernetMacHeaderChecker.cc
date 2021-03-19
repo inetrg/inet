@@ -55,8 +55,6 @@ void EthernetMacHeaderChecker::processPacket(Packet *packet)
         protocol = &Protocol::ieee8022llc;
     else
         protocol = ProtocolGroup::ethertype.getProtocol(typeOrLength);
-    packetProtocolTag->setFrontOffset(b(0));
-    packetProtocolTag->setBackOffset(b(0));
     packetProtocolTag->setProtocol(protocol);
     packet->addTagIfAbsent<DispatchProtocolReq>()->setProtocol(protocol);
 }

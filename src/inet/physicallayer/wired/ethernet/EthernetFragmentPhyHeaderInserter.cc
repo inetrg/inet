@@ -37,8 +37,6 @@ void EthernetFragmentPhyHeaderInserter::processPacket(Packet *packet)
     packet->insertAtFront(header);
     const auto& packetProtocolTag = packet->addTagIfAbsent<PacketProtocolTag>();
     packetProtocolTag->setProtocol(&Protocol::ethernetPhy);
-    packetProtocolTag->setFrontOffset(b(0));
-    packetProtocolTag->setBackOffset(b(0));
 }
 
 void EthernetFragmentPhyHeaderInserter::handlePacketProcessed(Packet *packet)

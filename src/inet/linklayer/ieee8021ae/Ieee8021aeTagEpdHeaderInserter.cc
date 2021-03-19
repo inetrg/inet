@@ -50,7 +50,6 @@ void Ieee8021aeTagEpdHeaderInserter::processPacket(Packet *packet)
         header->setTypeOrLength(ProtocolGroup::ethertype.findProtocolNumber(protocol));
     packet->insertAtFront(header);
     packetProtocolTag->setProtocol(&Protocol::ieee8021ae);
-    packetProtocolTag->setFrontOffset(b(0));
 }
 
 } // namespace inet

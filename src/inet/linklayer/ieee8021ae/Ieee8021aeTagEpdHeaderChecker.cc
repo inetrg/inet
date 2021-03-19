@@ -39,8 +39,6 @@ void Ieee8021aeTagEpdHeaderChecker::processPacket(Packet *packet)
     else
         protocol = ProtocolGroup::ethertype.getProtocol(typeOrLength);
     auto packetProtocolTag = packet->addTagIfAbsent<PacketProtocolTag>();
-    packetProtocolTag->setFrontOffset(b(0));
-    packetProtocolTag->setBackOffset(b(0));
     packetProtocolTag->setProtocol(protocol);
     packet->addTagIfAbsent<DispatchProtocolReq>()->setProtocol(protocol);
 }
