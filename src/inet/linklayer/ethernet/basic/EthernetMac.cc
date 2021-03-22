@@ -234,8 +234,6 @@ void EthernetMac::processMsgFromNetwork(EthernetSignalBase *signal)
     }
 
     const auto& frame = packet->peekAtFront<EthernetMacHeader>();
-    packet->popAtBack<EthernetFcs>(ETHER_FCS_BYTES);
-    packet->addTagIfAbsent<PacketProtocolTag>()->setProtocol(&Protocol::ethernetMac, b(0), ETHER_FCS_BYTES);
 
     if (dropFrameNotForUs(packet, frame))
         return;
@@ -349,6 +347,9 @@ void EthernetMac::processReceivedDataFrame(Packet *packet, const Ptr<const Ether
     numFramesReceivedOK++;
     numBytesReceivedOK += curBytes;
     emit(rxPkOkSignal, packet);
+
+    packet->popAtBack<EthernetFcs>(ETHER_FCS_BYTES);
+    packet->getTagForUpdate<PacketProtocolTag>()->setBackOffset(ETHER_FCS_BYTES);
 
     const auto macAddressInd = packet->addTagIfAbsent<MacAddressInd>();
     macAddressInd->setSrcAddress(frame->getSrc());
