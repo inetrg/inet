@@ -106,7 +106,7 @@ module EthernetSwitch
             parameters:
                 @display("p=800,350;b=1200,5");
         }
-        ethernet: <default("")> like IEthernetLayer if typename != "" {
+        ethernet: <default("EthernetLayer")> like IEthernetLayer if typename != "" {
             @display("p=500,425");
         }
         ieee8021q: <default("Ieee8021qProtocol")> like IProtocolLayer if typename != "" {
