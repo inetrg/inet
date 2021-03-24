@@ -88,14 +88,14 @@ module AccessPoint
             parameters:
                 @display("p=800,200;b=1200,5,,,,1");
         }
-        ethernet: EthernetLayer if sizeof(ethg)+numWlanInterfaces > 1 && exists(relayUnit) {
+        ethernet: EthernetLayer if sizeof(ethg)+numWlanInterfaces > 1 && exists(bridging) {
             @display("p=500,250");
             *.promiscuous = true;
         }
-        ieee8021q: Ieee8021qLayer if sizeof(ethg)+numWlanInterfaces > 1 && exists(relayUnit) {
+        ieee8021q: Ieee8021qLayer if sizeof(ethg)+numWlanInterfaces > 1 && exists(bridging) {
             @display("p=700,250");
         }
-        li: MessageDispatcher if sizeof(ethg)+numWlanInterfaces > 1 && exists(relayUnit) {
+        li: MessageDispatcher if sizeof(ethg)+numWlanInterfaces > 1 && exists(bridging) {
             parameters:
                 @display("p=800,300;b=1200,5");
         }
@@ -109,8 +109,8 @@ module AccessPoint
                 @display("p=850,400,row;q=txQueue");
         }
     connections allowunconnected:
-        nl.out++ --> bridging.ifIn if sizeof(ethg)+numWlanInterfaces > 1 && exists(bridging);
-        nl.in++ <-- bridging.ifOut if sizeof(ethg)+numWlanInterfaces > 1 && exists(bridging);
+        nl.out++ --> bridging.lowerLayerIn if sizeof(ethg)+numWlanInterfaces > 1 && exists(bridging);
+        nl.in++ <-- bridging.lowerLayerOut if sizeof(ethg)+numWlanInterfaces > 1 && exists(bridging);
 
         nl.out++ --> li.in++ if sizeof(ethg)+numWlanInterfaces > 1 && exists(bridging);
         li.out++ --> nl.in++ if sizeof(ethg)+numWlanInterfaces > 1 && exists(bridging);
