@@ -26,10 +26,13 @@ import inet.common.packet.recorder.PcapRecorder;
 import inet.linklayer.configurator.L2NodeConfigurator;
 import inet.linklayer.contract.IEthernetInterface;
 import inet.linklayer.contract.IMacAddressTable;
+import inet.linklayer.contract.IPolicyLayer;
 import inet.linklayer.contract.ISpanningTree;
 import inet.linklayer.ethernet.contract.IEthernetLayer;
+import inet.linklayer.ieee8022.Ieee8022Llc;
 import inet.networklayer.common.InterfaceTable;
 import inet.protocolelement.contract.IProtocolLayer;
+
 
 
 //
@@ -60,6 +63,7 @@ module EthernetSwitch
         **.macTableModule = default(absPath(".macTable"));
 
         bridging.localDeliveryMacAddresses = default(hasStp ? ["01:80:C2:00:00:00"] : []);
+        llc.registerProtocol = true;
         eth[*].mac.promiscuous = default(true);
         ethernet.*.promiscuous = default(true);
 
@@ -93,7 +97,7 @@ module EthernetSwitch
         }
         nr: MessageDispatcher {
             parameters:
-                @display("p=800,200;b=1200,5");
+                @display("p=800,150;b=1200,5");
         }
         li: MessageDispatcher {
             parameters:
@@ -102,6 +106,12 @@ module EthernetSwitch
         eth[sizeof(ethg)]: <default(enableCutthrough ? "EthernetCutthroughInterface" : "EthernetInterface")> like IEthernetInterface {
             parameters:
                 @display("p=250,700,row,150;q=txQueue");
+        }
+        llc: Ieee8022Llc {
+            @display("p=800,200");
+        }
+        policy: <default("OmittedPolicyLayer")> like IPolicyLayer {
+            @display("p=800,350");
         }
         rl: MessageDispatcher {
             parameters:
@@ -134,8 +144,19 @@ module EthernetSwitch
             eth[i].cutthroughIn <-- cutthrough.out++ if enableCutthrough;
         }
 
+        bridging.ifOut --> policy.upperLayerIn;
+        policy.upperLayerOut --> bridging.ifIn;
+
+        policy.lowerLayerOut --> rl.in++;
+        rl.out++ --> policy.lowerLayerIn;
         rl.out++ --> li.in++;
         li.out++ --> rl.in++;
+
+        llc.upperLayerOut --> nr.in++;
+        nr.out++ --> llc.upperLayerIn;
+
+        bridging.upperLayerOut --> llc.lowerLayerIn;
+        llc.lowerLayerOut --> bridging.upperLayerIn;
 
         ieee8021q.upperLayerOut --> rl.in++ if exists(ieee8021q);
         rl.out++ --> ieee8021q.upperLayerIn if exists(ieee8021q);
@@ -146,9 +167,6 @@ module EthernetSwitch
         rl.out++ --> ethernet.upperLayerIn if exists(ethernet);
         ethernet.upperLayerOut --> rl.in++ if exists(ethernet);
 
-        bridging.lowerLayerOut --> rl.in++;
-        rl.out++ --> bridging.lowerLayerIn;
-
         for i=0..sizeof(ethg)-1 {
             li.out++ --> eth[i].upperLayerIn;
             li.in++ <-- eth[i].upperLayerOut;
@@ -156,10 +174,8 @@ module EthernetSwitch
         }
 
         if hasStp {
-            stp.relayIn <-- nr.out++; // relayLayer.stpOut;
-            stp.relayOut --> nr.in++; // relayLayer.stpIn;
+            stp.relayIn <-- nr.out++;
+            stp.relayOut --> nr.in++;
         }
-        bridging.upperLayerOut --> nr.in++;
-        nr.out++ --> bridging.upperLayerIn;
 }
 
