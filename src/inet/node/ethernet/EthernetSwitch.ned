@@ -26,13 +26,11 @@ import inet.common.packet.recorder.PcapRecorder;
 import inet.linklayer.configurator.L2NodeConfigurator;
 import inet.linklayer.contract.IEthernetInterface;
 import inet.linklayer.contract.IMacAddressTable;
-import inet.linklayer.contract.IPolicyLayer;
 import inet.linklayer.contract.ISpanningTree;
 import inet.linklayer.ethernet.contract.IEthernetLayer;
 import inet.linklayer.ieee8022.Ieee8022Llc;
 import inet.networklayer.common.InterfaceTable;
 import inet.protocolelement.contract.IProtocolLayer;
-
 
 
 //
@@ -110,21 +108,21 @@ module EthernetSwitch
         llc: Ieee8022Llc {
             @display("p=800,200");
         }
-        policy: <default("OmittedPolicyLayer")> like IPolicyLayer {
+        policy: <default("OmittedProtocolLayer")> like IProtocolLayer {
             @display("p=800,350");
         }
         rl: MessageDispatcher {
             parameters:
-                @display("p=800,350;b=1200,5");
+                @display("p=800,400;b=1200,5");
         }
         ethernet: <default("EthernetLayer")> like IEthernetLayer if typename != "" {
-            @display("p=500,425");
+            @display("p=500,450");
         }
         ieee8021q: <default("Ieee8021qProtocol")> like IProtocolLayer if typename != "" {
-            @display("p=700,425");
+            @display("p=700,450");
         }
         ieee8021r: <default("Ieee8021rProtocol")> like IProtocolLayer if typename != "" {
-            @display("p=900,425");
+            @display("p=900,450");
         }
         cutthrough: MessageDispatcher if enableCutthrough {
             @display("p=800,600;b=1200,5");
@@ -144,8 +142,8 @@ module EthernetSwitch
             eth[i].cutthroughIn <-- cutthrough.out++ if enableCutthrough;
         }
 
-        bridging.ifOut --> policy.upperLayerIn;
-        policy.upperLayerOut --> bridging.ifIn;
+        bridging.lowerLayerOut --> policy.upperLayerIn;
+        policy.upperLayerOut --> bridging.lowerLayerIn;
 
         policy.lowerLayerOut --> rl.in++;
         rl.out++ --> policy.lowerLayerIn;
