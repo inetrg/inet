@@ -20,7 +20,7 @@ Ethernet Preemption
 Goals
 -----
 
-Ethernet preemption enables higher priority frames to interrupt the transmission of lower priority frames in the Ethernet MAC layer. This guaranties low latency for time-critical high priority frames.
+Ethernet preemption (802.1Qbu) enables higher priority frames to interrupt the transmission of lower priority frames in the Ethernet MAC layer. This facilitates creating low latency for time-critical high priority frames.
 
 This showcase demonstrates Ethernet preemption and examines the latency reduction.
 
@@ -32,7 +32,9 @@ Overview
 
 .. **V1** In time-sensitive networking applications, Ethernet preemption can significantly reduce latency. When a high priority frame becomes available during the transmission of a low priority frame, the Ethernet MAC can interrupt the transmission of the low priority frame. After sending the high priority frame, the MAC continues the transmission of the low priority frame from where it left off, eventually sending the low priority frame in two (or more) fragments.
 
-In time-sensitive networking applications, Ethernet preemption can significantly reduce latency. When a high priority frame becomes available during the transmission of a low priority frame, the Ethernet MAC can interrupt the transmission of the low priority frame, and start sending the high priority frame immediately. The MAC can continue transmission of the low priority frame from where it left off, eventually sending the low priority frame in two (or more) fragments. This technique guaranties a very low upper bound for latency for high priority frames, which is almost equal to the transmission delay.
+In time-sensitive networking applications, Ethernet preemption can significantly reduce latency. When a high priority frame becomes available for transmission during the transmission of a low priority frame, the Ethernet MAC can interrupt the transmission of the low priority frame, and start sending the high priority frame immediately. When the high priority frame finishes, the MAC can continue transmission of the low priority frame from where it left off, eventually sending the low priority frame in two (or more) fragments. 
+
+.. This technique guarantees a very low upper bound for latency for high priority frames, which is almost equal to the transmission delay.
 
 
 .. **V1** Preemption is a feature of the composable Ethernet model in INET. It requires packet streaming so that packet transmission is represented as a stream so that it can be interrupted. The :ned:`EthernetPreemptingMacLayer` contains two MAC sub-layers, a preemptable (:ned:`EthernetStreamingMacLayer`) and an express mac layer (:ned:`EthernetFragmentingMacLayer`), each with its own queue for frames:
@@ -74,11 +76,13 @@ In time-sensitive networking applications, Ethernet preemption can significantly
    - ujrainditja a frame-et
    - any given moment of time csak 1 frame lehet fragmentalva.
    - a sceduleren keresztul értesul hogy van egy masik stream
-   - az IFG applied in the phy layer
+   - az IFG applied in the phy layeremption enables higher priority frames to interrupt the transmission of lower priority frames in the Ethernet MAC layer. This facilitates creating low latency for time-critical high priority frames.
+
+   This showcase demonstrates Ethernet preemption and examines the latency reduction.
 
 .. **V4** Preemption is a feature of INET's composable Ethernet model. It uses packet streaming, so that packet transmission is represented as a stream which can be interrupted.
 
-Preemption is a feature of INET's composable Ethernet model. It uses packet streaming, so that packet transmission is represented as a stream which can be interrupted. Preemption requires the :ned:`LayeredEthernetInterface`, which contains a MAC and a PHY layer, displayed below:
+Preemption is a feature of INET's composable Ethernet model. It uses INET's packet streaming API, so that packet transmission is represented as an interruptable stream. Preemption requires the :ned:`LayeredEthernetInterface`, which contains a MAC and a PHY layer, displayed below:
 
 .. figure:: media/LayeredEthernetInterface2.png
    :align: center
@@ -87,14 +91,16 @@ To enable preemption, the default submodules :ned:`EthernetMacLayer` and :ned:`E
 
 .. It requires the following modules in the composable Ethernet interface (:ned:`LayeredEthernetInterface`)
 
-The :ned:`EthernetPreemptingMacLayer` contains two sub-MAC-layer submodules, a preemptable (:ned:`EthernetStreamingMacLayer`) and an express MAC layer (:ned:`EthernetFragmentingMacLayer`), each with its own queue for frames:
+The :ned:`EthernetPreemptingMacLayer` contains two submodules which themselves represent Ethernet MAC layers, a preemptable (:ned:`EthernetStreamingMacLayer`) and an express MAC layer (:ned:`EthernetFragmentingMacLayer`), each with its own queue for frames:
 
 .. figure:: media/mac.png
    :align: center
 
-:ned:`EthernetPreemptingMacLayer` uses intra-node packet streaming. Discrete packets come in the MAC module from the higher layers, but the sub-MAC-layers (express and preemptable) output packet streams. Packets are sent out as streams out of the MAC layer, through the PHY layer and through the Ethernet connection.
+The :ned:`EthernetPreemptingMacLayer` uses intra-node packet streaming. Discrete packets enter the MAC module from the higher layers, but leave the sub-MAC-layers (express and preemptable) as packet streams. Packets exit the MAC layer as a stream, and are represented as such through the PHY layer and the link.
 
-During preemption, packets initially stream from the preemptable sub-MAC-layer. The scheduler notifies the preempting server when a packet arrives at the express MAC. The server stops the preemptable stream, sends the express stream, and then it restarts the preemptable steam.
+.. Packets are sent as streams out of the MAC layer, through the PHY layer and through the link.
+
+In the case of preemption, packets initially stream from the preemptable sub-MAC-layer. The ``scheduler`` notifies the ``preemptingServer`` when a packet arrives at the express MAC. The ``preemptingServer`` stops the preemptable stream, sends the express stream in full, and then eventually it resumes the preemptable stream.
 
 .. **V2** Here is an example for the preemption process:
 
@@ -102,7 +108,9 @@ During preemption, packets initially stream from the preemptable sub-MAC-layer. 
    - The scheduler notifies the preempting server when a packet arrives at the express mac
    - The server stops the preemptable stream, sends the express stream, and then it restarts the preemptable steam
 
-Interframe gaps between the packets are inserted by the PHY layer. Note that only one frame can be fragmented at any given moment.
+Interframe gaps are inserted by the PHY layer. 
+
+**TODO** `somewhere else?` Note that only one frame can be fragmented by preemption at any given moment.
 
 The :ned:`EthernetPreemptingPhyLayer` supports both packet streaming and fragmenting (sending packets in multiple fragments).
 
@@ -124,7 +132,7 @@ The simulation uses the following network:
 .. figure:: media/network.png
    :align: center
 
-It contains two :ned:`StandardHost`'s connected with 100Mbps Ethernet, and also a :ned:`PcapRecorder` to record PCAP traces.
+It contains two :ned:`StandardHost`'s connected with 100Mbps Ethernet, and also a :ned:`PcapRecorder` to record PCAP traces; ``host1`` periodically generates packets for ``host2``.
 
 .. ---------------------------
 
@@ -140,11 +148,13 @@ It contains two :ned:`StandardHost`'s connected with 100Mbps Ethernet, and also 
 
 .. **V2** Primarily, we run simulations with the same packet length for the low and high priority traffic, so that transmission delay is the same for the two. This way the end-to-end delay can be compared. There are three configurations in omnetpp.ini, for the following three cases:
 
-Primarily, we run simulations with the same packet length for the low and high priority traffic, so that we can compare the end-to-end delay in the following three configurations in omnetpp.ini:
+.. Initially, we run simulations with the same packet length for the low and high priority traffic, so that we can compare the end-to-end delay in the following three configurations in omnetpp.ini:
+
+Primarily, we want to compare the end-to-end delay, so we run simulations with the same packet length for the low and high priority traffic in the following three configurations in omnetpp.ini: 
 
 - ``Default``: The baseline configuration; doesn't use any latency reduction techniques
-- ``PriorityQueue``: Uses priority queue in the Ethernet MAC for lower delay of high priority frames
-- ``Preemption``: Uses preemption for high priority frames for a very low delay with a guarantied upper bound
+- ``PriorityQueue``: Uses priority queue in the Ethernet MAC to lower the delay of high priority frames
+- ``Preemption``: Uses preemption for high priority frames for a very low delay with a guaranteed upper bound
 
 .. - ``V1 Preemption``: Uses preemption for high priority frames for even lower delay than the priority queue case, because the ongoing transmission of low priority frames doens't need to finish before sending the high priority frame. This technique guaranties a minimum delay.
    - ``V2 Preemption``: Uses preemption for high priority frames for even lower delay than the priority queue case. This technique guaranties a minimum delay.
@@ -154,18 +164,18 @@ Primarily, we run simulations with the same packet length for the low and high p
 
 .. **V1** Additionally, we demonstrate these three delay reduction techniques with more realistic traffic (longer and more frequent low priority and shorter, less frequent high priority frames); these simulations are the extension of the three mentioned above, and are defined in ini file as the configurations with the ``Realistic`` prefix.
 
-Additionally, we demonstrate the above delay reduction techniques with more realistic traffic (longer and more frequent low priority and shorter, less frequent high priority frames); these simulations are the extension of the three configurations mentioned above, and are defined in ini file as the configurations with the ``Realistic`` prefix.
+Additionally, we demonstrate the above delay reduction techniques with more realistic traffic: longer and more frequent low priority frames and shorter, less frequent high priority frames. These simulations are the extension of the three configurations mentioned above, and are defined in the ini file as the configurations with the ``Realistic`` prefix.
 
 .. ---------------------------
 
-In the ``General`` configuration, the hosts are configured to use the layered ethernet model instead of the default, which must be disabled:
+In the ``General`` configuration, the hosts are configured to use the layered Ethernet model instead of the default, which must be disabled:
 
 .. literalinclude:: ../omnetpp.ini
    :start-at: encap.typename
    :end-at: LayeredEthernetInterface
    :language: ini
 
-Also, we want to record a PCAP trace, so we can examine the traffic in Wireshark. We enable PCAP recording, and set the PCAP recorder to dump Ethernet PHY frames:
+We also want to record a PCAP trace, so we can examine the traffic in Wireshark. We enable PCAP recording, and set the PCAP recorder to dump Ethernet PHY frames, because preemption is visuble in the PHY header:
 
 .. literalinclude:: ../omnetpp.ini
    :start-at: recordPcap
@@ -176,7 +186,9 @@ Also, we want to record a PCAP trace, so we can examine the traffic in Wireshark
 
 .. **V2** For traffic generation, ``host1`` is configured to send UDP packets to ``host2``:
 
-To generate traffic, ``host1`` is configured to send UDP packets to ``host2``:
+Here is the configuration of traffic generation in ``host1``:
+
+.. To generate traffic, ``host1`` is configured to send UDP packets to ``host2``:
 
 .. literalinclude:: ../omnetpp.ini
    :start-at: numApps
@@ -186,12 +198,12 @@ To generate traffic, ``host1`` is configured to send UDP packets to ``host2``:
 
 .. ------------------------------
 
-   **V1** There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic and the other time-sensitive traffic. (The :ned:`UdpApp` is similar to `UdpBasicApp` in function, but it's built using generic protocol components for more flexibility/modularity.) **TODO** what is the outbound module? We configure the app's ``outbound`` module to be a PacketTagger, so we can tag packets with a VLAN ID requests, to put them in different priority categories.
+   **V1** There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic and the other, time-sensitive traffic. (The :ned:`UdpApp` is similar to `UdpBasicApp` in function, but it's built using generic protocol components for more flexibility/modularity.) **TODO** what is the outbound module? We configure the app's ``outbound`` module to be a PacketTagger, so we can tag packets with a VLAN ID requests, to put them in different priority categories.
    **TODO** why
 
    ------------------------------
 
-There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic and the other time-sensitive traffic. The UDP apps put VLAN tags on the packets, and the Ethernet MAC uses these tags to classify traffic into high and low priorities.
+There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic and the other, time-sensitive traffic. The UDP apps put VLAN tags on the packets, and the Ethernet MAC uses the VLAN ID contained in the tags to classify traffic into high and low priorities.
 
 
 .. .. note:: The :ned:`UdpApp` is similar to `UdpBasicApp` in function, but it's modular, built using generic protocol components for more flexibility.) **TODO** not sure its needed at all
@@ -200,7 +212,7 @@ There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic
 
 .. **TODO** not so detailed
 
-We set up high background traffic (96 Mbps) and lower time-sensitive traffic (9.6 Mbps); both send 1200B packets:
+We set up high-bitrate background traffic (96 Mbps) and lower-bitrate time-sensitive traffic (9.6 Mbps); both with 1200B packets (excess packets will be dropped):
 
 .. literalinclude:: ../omnetpp.ini
    :start-at: app[0].source.packetLength
@@ -211,7 +223,9 @@ We set up high background traffic (96 Mbps) and lower time-sensitive traffic (9.
 
 .. **TODO** seems redundant -> it is. make sure its contained above.
 
-In the ``Default`` configuration, no preemption or priority queue is used; the configuration just limits the :ned:`EthernetMac`'s queue length to 4. 
+The ``Default`` configuration uses no preemption or priority queue, the configuration just limits the :ned:`EthernetMac`'s queue length to 4. 
+
+.. The default configuration uses no preemption or priority queue.
 
 In all three cases, the queues need to be short to decrease the queueing time's effect on the measured delay. However, if they are too short, they might be empty too often, which renders the priority queue useless (it cannot prioritize if it contains just one packet, for example). The queue length of 4 is an arbitrary choice. The queue type is set to :ned:`DropTailQueue` so that it can drop packets if the queue is full:
 
@@ -239,7 +253,9 @@ In the ``PriorityQueue`` configuration, we change the queue type in the Mac laye
    :end-before: Config
    :language: ini
 
-The priority queue needs two internal queues, for the two traffic categories; to limit the queueing time's effect on the measured end-to-end delay, we also limit the length of internal queues to 4. We also disable the shared buffer, and set the queue type to :ned:`DropTailQueue`. We configure the priority queue's classifier to classify packets based on the VLAN ID request, which indicates the traffic category.
+The priority queue utilizes two internal queues, for the two traffic categories. To limit the queueing time's effect on the measured end-to-end delay, we also limit the length of internal queues to 4. We also disable the shared buffer, and set the queue type to :ned:`DropTailQueue`. We use the priority queue's classifier to put packets into the two traffic categories.
+
+.. based on the VLAN ID request, which indicates the traffic category.
 
 .. **TODO** too much we configure
 
@@ -261,9 +277,10 @@ In the ``Preemption`` configuration, we replace the :ned:`EthernetMacLayer` and 
    :end-at: DropTailQueue
    :language: ini
 
-.. note:: There is no priority queue in this configuration, but the sub-mac-layer modules each have their own queue. It is also possible to disable these internal queues and have just one shared queue in the EthernetPreemptableMac module.
-
+There is no priority queue in this configuration, the two MAC-layer submodules both have their own queues. 
 We also limit the queue length to 4, and configure the queue type to be :ned:`DropTailQueue`.
+
+.. note:: We could also have just one shared priority queue in the EthernetPreemptableMac module, but this is not covered here.
 
 We use the following traffic for the ``RealisticDefault``, ``RealisticPriorityQueue`` and ``RealisticPreemption`` configurations:
 
@@ -280,17 +297,18 @@ We use the following traffic for the ``RealisticDefault``, ``RealisticPriorityQu
    - more like sporadic short frames for high priority
    - and more frequent longer frames for low priority
 
-In this traffic configuration, high priority packets are a 100 times less frequent, and have 1/10th of the size of low priority packets.
+In this traffic configuration, high-priority packets are 100 times less frequent, and are 1/10th the size of low-priority packets.
 
 Results
 -------
 
 In the case of the ``Default`` configuration, the MAC stores packets in a FIFO queue.
-Thus higher priority packets wait in line with the lower priority packets, before getting sent eventually.
+Thus, higher-priority packets wait in line with the lower-priority packets, before getting sent eventually.
 
-In the case of the ``PriorityQueue`` configuration, higher priority frames wait in their own sub-queue in the PriorityQueue module in the MAC. If there are high priority frames present in the queue, the MAC will send them first, or after finishing the transmission of the current low priority frame. High priority frames can be delayed, as the transmission of the current frame needs to finish before sending the high priority frame.
+In the case of the ``PriorityQueue`` configuration, higher-priority frames wait in their own sub-queue in the PriorityQueue module in the MAC. If there are high priority frames present in the queue, the MAC will finish the ongoing low-priority transmission (if there is any) before beginning the transmission of the next high-priority frame. 
+High-priority frames can be delayed, as the transmission of the current frame needs to finish before sending the high-priority frame.
 
-In the ``Preemption`` configuration, in addition to the higher priority frames having their own queue, the MAC almost immediately stops transmitting the current low priority frame, and sends the high priority frame instead.
+In the ``Preemption`` configuration, in addition to the higher-priority frames having their own queue, the MAC almost immediately stops transmitting the current low-priority frame, and sends the high-priority frame instead.
 
 
 .. After the high priority frame transmission is complete, it sends the remaining fragment of the low priority frame.
@@ -303,17 +321,7 @@ In the ``Preemption`` configuration, in addition to the higher priority frames h
 
 .. In the animation and the packet log in Qtenv, and the event log file/sequence chart tool, frames are displayed or recorded as soon as they happen in the simulation. In these tools, the ``background-3`` frame is recorded three times:
 
-In the animation, the packet log, and the event log file/sequence chart tool, frames are displayed or recorded as soon as they happen in the simulation. In these features, the ``background-3`` frame is recorded three times:
-
-.. **TODO** too complex; 2 parts?
-
-- At the start of transmission, when the MAC still intended to send the frame unfragmented (``background-3``)
-- When the time sensitive frame arrives at the Ethernet MAC; ``background-3`` becomes ``background-3-frag0:progess`` (the MAC will actually stops transmitting the frame after sending an FCS, but this is still in the future in this moment)
-- The end of ``background-3-frag0`` (``background-3-frag0:end``)
-
-.. note:: So from the packet log and the sequence chart it might seem that a 1200B packet was sent (as it was logged that way). This can be confusing, but it's actually the proper operation of the packet log and the sequence chart tool.
-
-In contrast, the frames are recorded in the PCAP file at the end of the transmission of each frame or fragment, so that the 1200B frame is not present there, only the two fragments.
+In the animation, the packet log, and the event log file/sequence chart tool, frames are displayed or recorded as soon as they processed in the simulation. 
 
 Here is a video of the preemption behavior:
 
@@ -333,6 +341,26 @@ Here is a video of the preemption behavior:
    :width: 100%
 	 :align: center
 
+**TODO** ts1, background what?
+
+The Ethernet MAC in ``host1`` starts transmitting ``background-3``. During the transmission, a time-sensitive frame (``ts-1``) arrives at the MAC. The MAC interrupts the transmission of  ``background-3``; in the animation, ``background-3`` is first displayed as a whole frame, and changes to ``background-3-frag0:progress`` when the high priority frame is available. After transmitting the high priority frame, the remaining fragment of ``background-3-frag1`` is transmitted.
+
+In general, the any preempted frame appears three times:
+
+.. In general, the lifetime of the preempted frame is indicated by three
+
+.. a frame eleteben 3 kulonbozo esemenyt jelez a 3 sor; meselosebb; TODO delete comments
+
+.. **TODO** too complex; 2 parts?
+
+1. At the start of transmission, when the MAC still intended to send the frame unfragmented (``background-3``)
+2. When the time sensitive frame arrives at the Ethernet MAC; ``background-3`` becomes ``background-3-frag0:progess`` (the MAC will actually stop transmitting the frame after sending an FCS, but this is still in the future at the time)
+3. The end of first fragment (``background-3-frag0:end``)
+
+**TODO** generic (example frame); for any preemted frame (not just the first fragment);
+
+In contrast, the frames are recorded in the PCAP file at the end of the transmission of each frame or fragment, so the 1200B frame is not present there, only the two fragments.
+
 .. **TODO** packet log
 
 .. .. figure:: media/packetlog.png
@@ -348,8 +376,6 @@ Here is a video of the preemption behavior:
    :align: center
 
 .. The transmission of ``background-3`` starts before the high priority frame arrives at the MAC.
-
-The Ethernet MAC in ``host1`` starts transmitting ``background-3``. During the transmission, a time-sensitive frame (``ts-1``) arrives at the MAC. The MAC interrupts the transmission of  ``background-3``; in the animation, ``background-3`` is first displayed as a whole frame, and changes to ``background-3-frag0:progress`` when the high priority frame is available. After transmitting the high priority frame, the remaining fragment of ``background-3-frag1`` is transmitted.
 
 .. so
 
@@ -421,6 +447,8 @@ The same frame sequence is displayed on a sequence chart on the following images
    :width: 100%
 
 Just as in the packet log, the sequence chart contains the whole uninterrupted ``background-3`` frame, as it's logged when its transmission is started. 
+
+.. note:: From the packet log and the sequence chart it might seem that a 1200B packet was sent (as it was logged that way). This can be confusing, but it's actually the proper operation of the packet log and the sequence chart tool.
 
 .. This can be confusing, but it's actually the proper operation of the sequence chart tool. 
 
