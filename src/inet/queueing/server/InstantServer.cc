@@ -47,7 +47,7 @@ void InstantServer::processPacket()
     pushOrSendPacket(packet, outputGate, consumer);
     processedTotalLength += packetLength;
     numProcessedPackets++;
-    EV_INFO << "Processing packet ended" << EV_FIELD(packet) << EV_ENDL;
+    EV_INFO << "Processing packet ended" /* << EV_FIELD(packet) */ << EV_ENDL;  //TODO should not use the 'packet' after called the pushOrSendPacket()
 }
 
 void InstantServer::handleCanPushPacketChanged(cGate *gate)
