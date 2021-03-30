@@ -43,6 +43,7 @@ module ThroughputClient
         }
         cli: EtherAppClient {
             parameters:
+                destInterface = "wlan";
                 @display("p=300,100");
         }
         wlan: Ieee80211Interface {
