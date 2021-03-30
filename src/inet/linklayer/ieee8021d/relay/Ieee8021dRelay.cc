@@ -208,13 +208,18 @@ void Ieee8021dRelay::handleCrashOperation(LifecycleOperation *operation)
 
 NetworkInterface *Ieee8021dRelay::chooseBridgeInterface()
 {
+    NetworkInterface *retval = nullptr;
+
     for (int i = 0; i < interfaceTable->getNumInterfaces(); i++) {
         NetworkInterface *current = interfaceTable->getInterface(i);
-        if (!current->isLoopback() && current->isWired() /* && current->getProtocol() == &Protocol::ethernetMac */)   // TODO check protocol
-            return current;
+        if (!current->isLoopback()) {
+            if (current->isWired() /* && current->getProtocol() == &Protocol::ethernetMac */)   // TODO check protocol
+                return current;
+            else if (!retval)
+                retval = current;
+        }
     }
-
-    return nullptr;
+    return retval;
 }
 
 void Ieee8021dRelay::finish()
