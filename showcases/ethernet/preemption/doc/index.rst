@@ -79,9 +79,9 @@ Here is the configuration of traffic generation in ``host1``:
    :end-at: app[1].io.destPort
    :language: ini
 
-There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic and the other, time-sensitive traffic. The UDP apps put VLAN tags on the packets, and the Ethernet MAC uses the VLAN ID contained in the tags to classify traffic into high and low priorities.
+There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic and the other, time-sensitive traffic. The UDP apps put VLAN tags on the packets, and the Ethernet MAC uses the VLAN ID contained in the tags to classify the traffic into high and low priorities.
 
-We set up high-bitrate background traffic (96 Mbps) and lower-bitrate time-sensitive traffic (9.6 Mbps); both with 1200B packets (excess packets will be dropped):
+We set up a high-bitrate background traffic (96 Mbps) and a lower-bitrate time-sensitive traffic (9.6 Mbps); both with 1200B packets. Their sum is intentionally higher than the 100 Mbps link capacity (we want non-empty queues); excess packets will be dropped.
 
 .. literalinclude:: ../omnetpp.ini
    :start-at: app[0].source.packetLength
@@ -113,7 +113,7 @@ In the ``Preemption`` configuration, we replace the :ned:`EthernetMacLayer` and 
    :end-at: DropTailQueue
    :language: ini
 
-There is no priority queue in this configuration, the two MAC-layer submodules both have their own queues. 
+There is no priority queue in this configuration, the two MAC submodules both have their own queues.
 We also limit the queue length to 4, and configure the queue type to be :ned:`DropTailQueue`.
 
 .. note:: We could also have just one shared priority queue in the EthernetPreemptableMac module, but this is not covered here.
@@ -126,6 +126,25 @@ We use the following traffic for the ``RealisticDefault``, ``RealisticPriorityQu
    :language: ini
 
 In this traffic configuration, high-priority packets are 100 times less frequent, and are 1/10th the size of low-priority packets.
+
+Transmission on the Wire
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+In order to make sense of how frame preemptions are represented in the OMNeT++ GUI (in Qtenv's animation and packet log, and in the Sequence Chart in the IDE), it is necessary to understand how packet transmissions are modeled in OMNeT++.
+
+Traditionally, transmitting a frame on a link is represented in OMNeT++ by sending a "packet".  The "packet" is a C++ object (i.e. data structure) which is of, or is subclassed from, the OMNeT++ class ``cPacket``. The sending time corresponds to the start of the transmission. The packet data structure contains the length of the frame in bytes, and also the (more or less abstracted) frame content. The end of the transmission is implicit (computed as *start time* + *duration*, where *duration* is either explicit, or derived from the frame size and the link bitrate). This approach in vanilla form is of course not suitable for Ethernet frame preemption, because it is not known in advance whether or not a frame transmission will be preempted, and at which point.
+
+Instead, in OMNeT++ 6.0 the above approach was modified to accommodate new use cases. In the new approach, the original packet sending remains, but its interpretation changes slightly. It now represents a *prediction*: "this is a frame whose transmission will go through, unless we say otherwise". Namely, while the transmission is ongoing, it is possible to send *transmission updates*, which modifies the prediction about the remaining part of the transmission. A *transmission update* packet essentially says "ignore what I said previously about the total frame size/content and transmission time, here's much the time the remaining transmission is going to take according to the current state of affairs, and here's the updated frame length/content". A transmission update may abort (remaining time = 0s, the frame content is what's been transmitted up to that point), shorten or extend a transmission (and the frame). For technical reasons, the transmission update packet carries the full frame size and content (not just the remaining part), but it must be crafted by the sender in a way that it is consistent with what has already been transmitted (it cannot alter the past). A transmission update itself may also be modified by further transmission updates. The end of the transmission is still implicit (it finishes according to the last transmission update), but it is also possible to make the ending explicit by sending a zero-remaining-time transmission update at exactly the time the transmission would end. After the transmission's end time has passed, it is naturally not possible to send any more transmission updates for it (we cannot modify the past).
+
+In the light of the above, it is easy to see why a preempted Ethernet frame appears in e.g. Qtenv's event log multiple times: the original transmission and the subsequent transmission update(s) are all packets.
+
+- The first one is the original packet, which contains the full frame size/content and carries the prediction that the frame transmission will go through uninterrupted.
+- The second one is sent at the time the decision is made inside the node that the frame is going to be preempted. At that time, the node computes the truncated frame and the remaining transmission time, taking into account that at least the current octet and an FCS needs to be transmitted, and there is a minimum frame size requirement as well. The packet represents the size/content of the truncated frame, including FCS.
+- In the current implementation, the Ethernet model also sends an explicit end-transmission update, with zero remaining transmission duration and identical frame size/content as the previous one. This would not be strictly necessary, and may change in future INET releases.
+
+The above packets are distinguished using name suffixes: `:progress` and `:end` are appended to the original packet name for the first transmission update and the explicit end-transmission, respectively. In addition, the packet itself is also renamed by adding `-fragment0`, `-fragment1`, etc. to their name to make the frame fragments distunguishable from each other. For example, a frame called `background3` may be followed by `background3-fragment0:progress` and `background3-fragment0:end`. After the intervening express frame has also completed transmission, `background3-fragment1` will follow (possibly by `background3-fragment0:end` too).
+
+
 
 Results
 -------
