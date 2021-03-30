@@ -48,10 +48,32 @@ void PacketTransmitter::pushPacket(Packet *packet, cGate *gate)
     updateDisplayString();
 }
 
+namespace {
+bool canSendOnGate(cGate *gate)
+{
+    cGate *g;
+    for (g = gate; g->getNextGate() != nullptr; g = g->getNextGate()) {
+        if (g->getChannel()->isDisabled())
+            return false;
+    }
+    return (g != gate && g->getOwnerModule()->isSimple());
+}
+}
+
 void PacketTransmitter::startTx(Packet *packet)
 {
     // 1. check current state
     ASSERT(!isTransmitting());
+    if (!canSendOnGate(outputGate)) {
+        // TODO packet dropped signal
+        EV_ERROR << "output gate disconnected or channel disabled, packet dropped:" << EV_FORMAT_OBJECT(packet) << EV_ENDL;
+        if (producer != nullptr) {
+            producer->handlePushPacketProcessed(packet, inputGate->getPathStartGate(), true);
+            producer->handleCanPushPacketChanged(inputGate->getPathStartGate());
+        }
+        delete packet;
+        return;
+    }
     // 2. store transmission progress
     txDatarate = bps(*dataratePar);
     txStartTime = simTime();
