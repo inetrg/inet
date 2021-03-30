@@ -21,6 +21,8 @@ namespace inet {
 
 Define_Module(PacketTransmitter);
 
+// TODO: add code: abort TX signal when gate disconnected/disabled
+
 void PacketTransmitter::handleMessageWhenUp(cMessage *message)
 {
     if (message == txEndTimer)
