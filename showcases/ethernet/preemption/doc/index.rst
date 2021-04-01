@@ -79,7 +79,7 @@ Here is the configuration of traffic generation in ``host1``:
    :end-at: app[1].io.destPort
    :language: ini
 
-There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic and the other, time-sensitive traffic. The UDP apps put VLAN tags on the packets, and the Ethernet MAC uses the VLAN ID contained in the tags to classify the traffic into high and low priorities.
+There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic (low priority) and the other, time-sensitive traffic (high priority). The UDP apps put VLAN tags on the packets, and the Ethernet MAC uses the VLAN ID contained in the tags to classify the traffic into high and low priorities.
 
 We set up a high-bitrate background traffic (96 Mbps) and a lower-bitrate time-sensitive traffic (9.6 Mbps); both with 1200B packets. Their sum is intentionally higher than the 100 Mbps link capacity (we want non-empty queues); excess packets will be dropped.
 
@@ -159,8 +159,6 @@ Here is a video of the preemption behavior:
 .. video:: media/preemption3.mp4
    :width: 100%
 	 :align: center
-
-**TODO** ts1, background what?
 
 The Ethernet MAC in ``host1`` starts transmitting ``background-3``. During the transmission, a time-sensitive frame (``ts-1``) arrives at the MAC. The MAC interrupts the transmission of  ``background-3``; in the animation, ``background-3`` is first displayed as a whole frame, then changes to ``background-3-frag0:progress`` when the high priority frame is available. After transmitting the high priority frame, the remaining fragment of ``background-3-frag1`` is transmitted.
 
