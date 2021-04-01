@@ -142,22 +142,17 @@ In the light of the above, it is easy to see why a preempted Ethernet frame appe
 - The second one is sent at the time the decision is made inside the node that the frame is going to be preempted. At that time, the node computes the truncated frame and the remaining transmission time, taking into account that at least the current octet and FCS need to be transmitted, and there is a minimum frame size requirement as well. The packet represents the size/content of the truncated frame, including FCS.
 - In the current implementation, the Ethernet model also sends an explicit end-transmission update, with zero remaining transmission duration and identical frame size/content as the previous one. This would not be strictly necessary, and may change in future INET releases.
 
-The above packets are distinguished using name suffixes: ``:progress`` and ``:end`` are appended to the original packet name for transmission updates and for the explicit end-transmission, respectively. In addition, the packet itself is also renamed by adding ``-frag0``, ``-frag1``, etc. to its name, to make frame fragments distunguishable from each other. For example, a frame called ``background3`` may be followed by ``background3-frag0:progress`` and ``background3-frag0:end``. After the intervening express frame has also completed transmission, ``background3-frag1`` will follow.
+The above packets are distinguished using name suffixes: ``:progress`` and ``:end`` are appended to the original packet name for transmission updates and for the explicit end-transmission, respectively. In addition, the packet itself is also renamed by adding ``-frag0``, ``-frag1``, etc. to its name, to make frame fragments distunguishable from each other. For example, a frame called ``background3`` may be followed by ``background3-frag0:progress`` and ``background3-frag0:end``. After the intervening express frame has also completed transmission, ``background3-frag1`` will follow (see video in the next section).
 
 
 
 Results
 -------
 
-In the case of the ``Default`` configuration, the MAC stores packets in a FIFO queue.
-Thus, higher-priority packets wait in line with the lower-priority packets, before getting sent eventually.
+.. In the animation, the packet log, and the event log file/sequence chart tool, frames are displayed or recorded as soon as they processed in the simulation. 
 
-In the case of the ``PriorityQueue`` configuration, higher-priority frames wait in their own sub-queue in the PriorityQueue module in the MAC. If there are high priority frames present in the queue, the MAC will finish the ongoing low-priority transmission (if there is any) before beginning the transmission of the next high-priority frame. 
-High-priority frames can be delayed, as the transmission of the current frame needs to finish before sending the high-priority frame.
-
-In the ``Preemption`` configuration, in addition to the higher-priority frames having their own queue, the MAC almost immediately stops transmitting the current low-priority frame, and sends the high-priority frame instead.
-
-In the animation, the packet log, and the event log file/sequence chart tool, frames are displayed or recorded as soon as they processed in the simulation. 
+Preemption Behavior
+~~~~~~~~~~~~~~~~~~~
 
 Here is a video of the preemption behavior:
 
@@ -167,19 +162,19 @@ Here is a video of the preemption behavior:
 
 **TODO** ts1, background what?
 
-The Ethernet MAC in ``host1`` starts transmitting ``background-3``. During the transmission, a time-sensitive frame (``ts-1``) arrives at the MAC. The MAC interrupts the transmission of  ``background-3``; in the animation, ``background-3`` is first displayed as a whole frame, and changes to ``background-3-frag0:progress`` when the high priority frame is available. After transmitting the high priority frame, the remaining fragment of ``background-3-frag1`` is transmitted.
+The Ethernet MAC in ``host1`` starts transmitting ``background-3``. During the transmission, a time-sensitive frame (``ts-1``) arrives at the MAC. The MAC interrupts the transmission of  ``background-3``; in the animation, ``background-3`` is first displayed as a whole frame, then changes to ``background-3-frag0:progress`` when the high priority frame is available. After transmitting the high priority frame, the remaining fragment of ``background-3-frag1`` is transmitted.
 
-In general, the any preempted frame appears three times:
+.. In general, the any preempted frame appears three times:
 
 .. a frame eleteben 3 kulonbozo esemenyt jelez a 3 sor; meselosebb
 
-1. At the start of transmission, when the MAC still intended to send the frame unfragmented (``background-3``)
-2. When the time sensitive frame arrives at the Ethernet MAC; ``background-3`` becomes ``background-3-frag0:progess`` (the MAC will actually stop transmitting the frame after sending an FCS, but this is still in the future at the time)
-3. The end of first fragment (``background-3-frag0:end``)
+   1. At the start of transmission, when the MAC still intended to send the frame unfragmented (``background-3``)
+   2. When the time sensitive frame arrives at the Ethernet MAC; ``background-3`` becomes ``background-3-frag0:progess`` (the MAC will actually stop transmitting the frame after sending an FCS, but this is still in the future at the time)
+   3. The end of first fragment (``background-3-frag0:end``)
 
-**TODO** generic (example frame); for any preemted frame (not just the first fragment);
+   **TODO** generic (example frame); for any preemted frame (not just the first fragment);
 
-In contrast, the frames are recorded in the PCAP file at the end of the transmission of each frame or fragment, so the 1200B frame is not present there, only the two fragments.
+The frames are recorded in the PCAP file at the end of the transmission of each frame or fragment, so the 1200B frame is not present there, only the two fragments.
 
 The frame sequence is displayed in the Qtenv packet log:
 
@@ -187,7 +182,7 @@ The frame sequence is displayed in the Qtenv packet log:
    :align: center
    :width: 100%
 
-Lines are added to the packet log as they happen in the simulation. At first, ``background-3`` is logged as an uninterrupted frame. When the high priority frame becomes available, the frame name changes to ``background-3-frag0``, and it's logged separately. Actually, only  one frame named ``background-3-frag0`` was sent before ``ts-1``, but with three separate packet updates.
+As mentioned in the previous section, a preempted frame appears multiple times in the packet log, as updates to the frame are logged. At first, ``background-3`` is logged as an uninterrupted frame. When the high priority frame becomes available, the frame name changes to ``background-3-frag0``, and it's logged separately. Actually, only  one frame named ``background-3-frag0`` was sent before ``ts-1``, but with three separate packet updates.
 
 The same frame sequence is displayed on a sequence chart on the following images, with a different frame selected and highlighted on each image. Note that the timeline is non-linear:
 
@@ -197,9 +192,9 @@ The same frame sequence is displayed on a sequence chart on the following images
 
 Just as in the packet log, the sequence chart contains the whole uninterrupted ``background-3`` frame, as it's logged when its transmission is started. 
 
-.. note:: From the packet log and the sequence chart it might seem that a 1200B packet was sent (as it was logged that way). This can be confusing, but it's actually the proper operation of the packet log and the sequence chart tool.
+.. .. note:: From the packet log and the sequence chart it might seem that a 1200B packet was sent (as it was logged that way). This can be confusing, but it's actually the proper operation of the packet log and the sequence chart tool.
 
-.. note:: You can think of it as there are actually two time dimensions present on the sequence chart: the events and messages as they happen at the moment, and what the modules "think" about the future, i.e. how long will a transmission take. In reality, the transmission might be interrupted and so both the original (``background-3``) and the "updated" (``background-3-frag0``) is present on the chart.
+.. note:: You can think of it as there are actually two time dimensions present on the sequence chart: the events and messages as they happen at the moment, and what the modules "think" about the future, i.e. how long will a transmission take. In reality, the transmission might be interrupted and so both the original (``background-3``) and the "updated" (``background-3-frag0``) is present on the chart. **TODO** this might be redundant
 
 Here is the frame sequence on a sequence chart on a linear timeline, with the ``background-3-frag0`` frame highlighted:
 
@@ -235,28 +230,46 @@ The paths that the high and low priority (express and preemptable) packets take 
 .. figure:: media/express2.png
    :align: center
 
+Analyzing End-to-end Delay
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Comparing Delay Reduction Techniques
+++++++++++++++++++++++++++++++++++++
+
 We plot the mean end-to-end delay of the UDP packets for the three cases on the following chart; note that the configuration is indicated with line style, the traffic category with color:
 
 .. figure:: media/delay.png
    :align: center
    :width: 100%
 
-In case of the default configuration, there is only one queue. The queue is not empty, so the delay for the background and time sensitive frames is about the same, due to the limited queue length.
-The delay for both traffic categories is rougly the transmission duration of a frame + queueing delay + interframe gap.
+.. In the case of the ``Default`` configuration, the MAC stores packets in a FIFO queue.
+   Thus, higher-priority packets wait in line with the lower-priority packets, before getting sent eventually.
+
+In the case of the ``Default`` configuration, the MAC stores both background and time-sensitive packets in the same FIFO queue. Thus, higher-priority packets wait in line with the lower-priority packets, before getting sent eventually.
+
+Due to the limited queue length, the queue doesn't stay empty, so the delay for the frames of both traffic categories is about the same: it is rougly the transmission duration of a frame + queueing delay + interframe gap.
 The transmission duration for a 1200B frame on 100Mbps Ethernet is about 0.1ms. On average, there are two frames in the queue so frames wait two frame transmission durations in the queue. The interframe gap for 100Mbps Ethernet is 0.96us, so we assume it negligable:
 
 ``delay ~= txDuration + 2 * txDuration + IFG = 3 * txDuration = 0.3ms``
 
+In the case of the ``PriorityQueue`` configuration, higher-priority frames wait in their own sub-queue in the PriorityQueue module in the MAC. If there are high priority frames present in the queue, the MAC will finish the ongoing low-priority transmission (if there is any) before beginning the transmission of the next high-priority frame. 
+High-priority frames can be delayed, as the transmission of the current frame needs to finish before sending the high-priority frame.
+
 Using a priority queue decreases the delay of the time sensitive frames and increases that of the background frames. 
-A frame is always present in the background queue. The time sensitive frame needs to wait until the background frame transmission finishes; on average, the remaining duration is half the transmission duration of a background frame:
+Due to high background traffic, a frame is always present in the background queue. A time sensitive frame needs to wait until the background frame transmission finishes; on average, the remaining duration is half the transmission duration of a background frame:
 
 ``delay ~= txDuration + 0.5 * txDuration + IFG = 1.5 * txDuration = 0.15ms``
 
-Using preemption is even more effective in reducing the delay of high priority frames. The delay is roughly the duration of an FCS + transmission duration + interframe gap. The duration of an FCS is about 1us, so we neglect it.
+In the ``Preemption`` configuration, in addition to the higher-priority frames having their own queue, the MAC almost immediately stops transmitting the current low-priority frame, and sends the high-priority frame instead.
+
+Thus using preemption is even more effective in reducing the delay of high priority frames. The delay is roughly the duration of an FCS + transmission duration + interframe gap. The duration of an FCS is about 1us, so we neglect it in the calculation:
 
 ``delay = txDuration + fcsDuration + IFG ~= txDuration = 0.1ms``
 
 The calculated values above roughly match the results of the simulation.
+
+Realistic Traffic
++++++++++++++++++
 
 The mean end-to-end delay for the realistic traffic case is plotted on the following charts (the range indicated by the rectangle in the first chart is shown zoomed in on the second, so that its more visible):
 
