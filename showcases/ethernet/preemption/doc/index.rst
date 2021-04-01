@@ -231,17 +231,20 @@ The paths that the high and low priority (express and preemptable) packets take 
 Analyzing End-to-end Delay
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Comparing Delay Reduction Techniques
-++++++++++++++++++++++++++++++++++++
+Comparing the Delay for the Three Cases
++++++++++++++++++++++++++++++++++++++++
 
-To analyze the comparable packet length resultsm, we plot the mean end-to-end delay of the UDP packets for the three cases on the following chart. Note that the configuration is indicated with line style, the traffic category with color:
+To analyze the comparable packet length results, we plot the mean end-to-end delay of the UDP packets for the three cases on the following chart. Note that the configuration is indicated with line style, the traffic category with color:
 
 .. figure:: media/delay.png
    :align: center
-   :width: 100%
+   :width: 80%
 
 .. In the case of the ``Default`` configuration, the MAC stores packets in a FIFO queue.
    Thus, higher-priority packets wait in line with the lower-priority packets, before getting sent eventually.
+
+Estimating Delay for the Default Configuration
+**********************************************
 
 In the case of the ``Default`` configuration, the MAC stores both background and high-priority packets in the same FIFO queue. Thus, higher-priority packets wait in line with the lower-priority packets, before getting sent eventually.
 
@@ -250,6 +253,9 @@ The transmission duration for a 1200B frame on 100Mbps Ethernet is about 0.1ms. 
 
 ``delay ~= txDuration + 2 * txDuration + IFG = 3 * txDuration = 0.3ms``
 
+Estimating Delay for the PriorityQueue Configuration
+****************************************************
+
 In the case of the ``PriorityQueue`` configuration, higher-priority frames wait in their own sub-queue in the PriorityQueue module in the MAC. If there are high priority frames present in the queue, the MAC will finish the ongoing low-priority transmission (if there is any) before beginning the transmission of the next high-priority frame. 
 High-priority frames can be delayed, as the transmission of the current frame needs to finish before sending the high-priority frame.
 
@@ -257,6 +263,9 @@ Using a priority queue decreases the delay of the time sensitive frames and incr
 Due to high background traffic, a frame is always present in the background queue. A time sensitive frame needs to wait until the background frame transmission finishes; on average, the remaining duration is half the transmission duration of a background frame:
 
 ``delay ~= txDuration + 0.5 * txDuration + IFG = 1.5 * txDuration = 0.15ms``
+
+Estimating Delay for the Preemption Configuration
+*************************************************
 
 In the ``Preemption`` configuration, in addition to the higher-priority frames having their own queue, the MAC almost immediately stops transmitting the current low-priority frame, and sends the high-priority frame instead.
 
@@ -269,15 +278,17 @@ The calculated values above roughly match the results of the simulation.
 Realistic Traffic
 +++++++++++++++++
 
-The mean end-to-end delay for the realistic traffic case is plotted on the following charts (the range indicated by the rectangle in the first chart is shown zoomed in on the second, so that its more visible):
+The mean end-to-end delay for the realistic traffic case is plotted on the following chart:
 
 .. figure:: media/realisticdelay.png
    :align: center
-   :width: 100%
+   :width: 80%
+
+The range indicated by the rectangle on the chart above is shown zoomed in on the chart below, so that its more visible:
 
 .. figure:: media/realisticdelay_zoomed.png
    :align: center
-   :width: 100%
+   :width: 80%
 
 The end-to-end delay for preemption is about the transmission duration of a time sensitive frame in case of both the realistic and the comparable length traffic. This is expected, because when preemption is used, the currently transmitting packet is interrupted as soon as a high priority frame becomes available, regardless of the low priority frame's length.
 
