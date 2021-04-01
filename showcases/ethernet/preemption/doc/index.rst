@@ -79,9 +79,9 @@ Here is the configuration of traffic generation in ``host1``:
    :end-at: app[1].io.destPort
    :language: ini
 
-There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic (low priority) and the other, time-sensitive traffic (high priority). The UDP apps put VLAN tags on the packets, and the Ethernet MAC uses the VLAN ID contained in the tags to classify the traffic into high and low priorities.
+There are two :ned:`UdpApp`'s in ``host1``, one is generating background traffic (low priority) and the other, high-priority traffic. The UDP apps put VLAN tags on the packets, and the Ethernet MAC uses the VLAN ID contained in the tags to classify the traffic into high and low priorities.
 
-We set up a high-bitrate background traffic (96 Mbps) and a lower-bitrate time-sensitive traffic (9.6 Mbps); both with 1200B packets. Their sum is intentionally higher than the 100 Mbps link capacity (we want non-empty queues); excess packets will be dropped.
+We set up a high-bitrate background traffic (96 Mbps) and a lower-bitrate high-priority traffic (9.6 Mbps); both with 1200B packets. Their sum is intentionally higher than the 100 Mbps link capacity (we want non-empty queues); excess packets will be dropped.
 
 .. literalinclude:: ../omnetpp.ini
    :start-at: app[0].source.packetLength
@@ -160,7 +160,7 @@ Here is a video of the preemption behavior:
    :width: 100%
 	 :align: center
 
-The Ethernet MAC in ``host1`` starts transmitting ``background-3``. During the transmission, a time-sensitive frame (``ts-1``) arrives at the MAC. The MAC interrupts the transmission of  ``background-3``; in the animation, ``background-3`` is first displayed as a whole frame, then changes to ``background-3-frag0:progress`` when the high priority frame is available. After transmitting the high priority frame, the remaining fragment of ``background-3-frag1`` is transmitted.
+The Ethernet MAC in ``host1`` starts transmitting ``background-3``. During the transmission, a high-priority frame (``ts-1``) arrives at the MAC. The MAC interrupts the transmission of  ``background-3``; in the animation, ``background-3`` is first displayed as a whole frame, then changes to ``background-3-frag0:progress`` when the high priority frame is available. After transmitting the high priority frame, the remaining fragment of ``background-3-frag1`` is transmitted.
 
 .. In general, the any preempted frame appears three times:
 
@@ -171,8 +171,6 @@ The Ethernet MAC in ``host1`` starts transmitting ``background-3``. During the t
    3. The end of first fragment (``background-3-frag0:end``)
 
    **TODO** generic (example frame); for any preemted frame (not just the first fragment);
-
-The frames are recorded in the PCAP file at the end of the transmission of each frame or fragment, so the 1200B frame is not present there, only the two fragments.
 
 The frame sequence is displayed in the Qtenv packet log:
 
@@ -208,6 +206,8 @@ Here is the same frame sequence displayed in Wireshark:
    :align: center
    :width: 100%
 
+The frames are recorded in the PCAP file at the end of the transmission of each frame or fragment, so the 1200B frame is not present there, only the two fragments.
+
 In the Wireshark log, ``frame 5`` and ``frame 7`` are the two fragments of ``background-3``. Note that FPP refers to `Frame Preemption Protocol`; ``frame 6`` is ``ts-1``, sent between the two fragments.
 
 Here is ``background-3-frag1`` displayed in Qtenv's packet inspector:
@@ -234,7 +234,7 @@ Analyzing End-to-end Delay
 Comparing Delay Reduction Techniques
 ++++++++++++++++++++++++++++++++++++
 
-We plot the mean end-to-end delay of the UDP packets for the three cases on the following chart; note that the configuration is indicated with line style, the traffic category with color:
+To analyze the comparable packet length resultsm, we plot the mean end-to-end delay of the UDP packets for the three cases on the following chart. Note that the configuration is indicated with line style, the traffic category with color:
 
 .. figure:: media/delay.png
    :align: center
@@ -243,7 +243,7 @@ We plot the mean end-to-end delay of the UDP packets for the three cases on the 
 .. In the case of the ``Default`` configuration, the MAC stores packets in a FIFO queue.
    Thus, higher-priority packets wait in line with the lower-priority packets, before getting sent eventually.
 
-In the case of the ``Default`` configuration, the MAC stores both background and time-sensitive packets in the same FIFO queue. Thus, higher-priority packets wait in line with the lower-priority packets, before getting sent eventually.
+In the case of the ``Default`` configuration, the MAC stores both background and high-priority packets in the same FIFO queue. Thus, higher-priority packets wait in line with the lower-priority packets, before getting sent eventually.
 
 Due to the limited queue length, the queue doesn't stay empty, so the delay for the frames of both traffic categories is about the same: it is rougly the transmission duration of a frame + queueing delay + interframe gap.
 The transmission duration for a 1200B frame on 100Mbps Ethernet is about 0.1ms. On average, there are two frames in the queue so frames wait two frame transmission durations in the queue. The interframe gap for 100Mbps Ethernet is 0.96us, so we assume it negligable:
