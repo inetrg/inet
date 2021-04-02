@@ -108,7 +108,7 @@ void Gptp::initialize(int stage)
             // Schedule Sync message to be sent
             selfMsgSync = new ClockEvent("selfMsgSync", GPTP_SELF_MSG_SYNC);
 
-            clocktime_t scheduleSync = syncInterval + 0.01;
+            clocktime_t scheduleSync = syncInterval;
             originTimestamp = clock->getClockTime() + scheduleSync;
             scheduleClockEventAfter(scheduleSync, selfMsgSync);
         }
