@@ -3,15 +3,14 @@
 //           Henning Puttnies
 //           Peter Danielis
 //           University of Rostock, Germany
-//  
+//
 
 package inet.examples.ieee8021as;
 
-import inet.linklayer.ieee8021as.GptpBridge;
 import inet.linklayer.ieee8021as.GptpMaster;
 import inet.linklayer.ieee8021as.GptpSlave;
 import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
-
+import inet.node.ethernet.EthernetSwitch;
 
 network NetworkDaisyChain
 {
@@ -23,13 +22,13 @@ network NetworkDaisyChain
             delay = 25ns;		// Length of connection is 5 meters
         }
     submodules:
-        gptpBridge0: GptpBridge {
+        gptpBridge0: EthernetSwitch {
             @display("p=264,162");
         }
-        gptpBridge1: GptpBridge {
+        gptpBridge1: EthernetSwitch {
             @display("p=264,258");
         }
-        gptpBridge2: GptpBridge {
+        gptpBridge2: EthernetSwitch {
             @display("p=264,349");
         }
         gptpMaster: GptpMaster {

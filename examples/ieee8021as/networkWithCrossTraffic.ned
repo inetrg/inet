@@ -3,40 +3,39 @@
 //           Henning Puttnies
 //           Peter Danielis
 //           University of Rostock, Germany
-// 
+//
 
 package inet.examples.ieee8021as;
 
-import inet.linklayer.ieee8021as.GptpBridge;
 import inet.linklayer.ieee8021as.GptpMaster;
 import inet.linklayer.ieee8021as.GptpSlave;
 import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
+import inet.node.ethernet.EthernetSwitch;
 import inet.node.inet.StandardHost;
-
 
 network NetworkWithCrossTraffic
 {
     @display("bgb=1134,360");
     submodules:
-        gptpBridge0: GptpBridge {
+        gptpBridge0: EthernetSwitch {
             @display("p=230,179");
         }
         gptpMaster: GptpMaster {
             @display("p=91,180");
         }
-        gptpBridge1: GptpBridge {
+        gptpBridge1: EthernetSwitch {
             @display("p=370,179");
         }
-        gptpBridge2: GptpBridge {
+        gptpBridge2: EthernetSwitch {
             @display("p=510,179");
         }
-        gptpBridge3: GptpBridge {
+        gptpBridge3: EthernetSwitch {
             @display("p=651,179");
         }
-        gptpBridge4: GptpBridge {
+        gptpBridge4: EthernetSwitch {
             @display("p=794,179");
         }
-        gptpBridge5: GptpBridge {
+        gptpBridge5: EthernetSwitch {
             @display("p=927,179");
         }
         gptpSlave: GptpSlave {
