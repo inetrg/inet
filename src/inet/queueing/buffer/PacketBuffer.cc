@@ -83,6 +83,7 @@ void PacketBuffer::addPacket(Packet *packet)
                     if (callback != nullptr)
                         callback->handlePacketRemoved(packet);
                 }
+                take(packet);   // KLUDGE
                 dropPacket(packet, QUEUE_OVERFLOW);
             }
         }
