@@ -37,8 +37,10 @@ void PacketBuffer::initialize(int stage)
         dataCapacity = b(par("dataCapacity"));
         packetDropperFunction = createDropperFunction(par("dropperClass"));
     }
-    else if (stage == INITSTAGE_LAST)
+    else if (stage == INITSTAGE_LAST) {
+        WATCH_PTRVECTOR(packets);
         updateDisplayString();
+    }
 }
 
 IPacketDropperFunction *PacketBuffer::createDropperFunction(const char *dropperClass) const
