@@ -53,6 +53,8 @@ void Gptp::initialize(int stage)
         gptpNodeType = static_cast<GptpNodeType>(cEnum::get("GptpNodeType", "inet")->resolve(par("gptpNodeType")));
         syncInterval = par("syncInterval");
         pDelayReqProcessingTime = par("pDelayReqProcessingTime");
+        WATCH(syncInterval);
+        WATCH(pDelayReqProcessingTime);
     }
     if (stage == INITSTAGE_LINK_LAYER) {
         peerDelay = 0;
@@ -119,7 +121,9 @@ void Gptp::initialize(int stage)
             selfMsgDelayReq = new ClockEvent("selfMsgPdelay", GPTP_SELF_MSG_PDELAY_REQ);
             pdelayInterval = par("pdelayInterval");
             scheduleClockEventAfter(pdelayInterval, selfMsgDelayReq);
+            WATCH(pdelayInterval);
         }
+        WATCH(peerDelay);
     }
 }
 
