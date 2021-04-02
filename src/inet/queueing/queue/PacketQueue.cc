@@ -50,8 +50,10 @@ void PacketQueue::initialize(int stage)
         if (producer != nullptr)
             producer->handleCanPushPacketChanged(inputGate->getPathStartGate());
     }
-    else if (stage == INITSTAGE_LAST)
+    else if (stage == INITSTAGE_LAST) {
+        WATCH_OBJ(queue);
         updateDisplayString();
+    }
 }
 
 IPacketDropperFunction *PacketQueue::createDropperFunction(const char *dropperClass) const
