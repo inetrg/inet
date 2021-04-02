@@ -52,8 +52,7 @@ void Gptp::initialize(int stage)
     if (stage == INITSTAGE_LOCAL) {
         gptpNodeType = static_cast<GptpNodeType>(cEnum::get("GptpNodeType", "inet")->resolve(par("gptpNodeType")));
         syncInterval = par("syncInterval");
-        pDelayReqProcessingTime = par("pDelayRespInterval");
-
+        pDelayReqProcessingTime = par("pDelayReqProcessingTime");
     }
     if (stage == INITSTAGE_LINK_LAYER) {
         peerDelay = 0;
