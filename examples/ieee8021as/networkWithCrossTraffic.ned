@@ -7,35 +7,35 @@
 
 package inet.examples.ieee8021as;
 
+import inet.linklayer.ieee8021as.GptpBridge;
 import inet.linklayer.ieee8021as.GptpMaster;
 import inet.linklayer.ieee8021as.GptpSlave;
 import inet.networklayer.configurator.ipv4.Ipv4NetworkConfigurator;
-import inet.node.ethernet.EthernetSwitch;
 import inet.node.inet.StandardHost;
 
 network NetworkWithCrossTraffic
 {
     @display("bgb=1134,360");
     submodules:
-        gptpBridge0: EthernetSwitch {
+        gptpBridge0: GptpBridge {
             @display("p=230,179");
         }
         gptpMaster: GptpMaster {
             @display("p=91,180");
         }
-        gptpBridge1: EthernetSwitch {
+        gptpBridge1: GptpBridge {
             @display("p=370,179");
         }
-        gptpBridge2: EthernetSwitch {
+        gptpBridge2: GptpBridge {
             @display("p=510,179");
         }
-        gptpBridge3: EthernetSwitch {
+        gptpBridge3: GptpBridge {
             @display("p=651,179");
         }
-        gptpBridge4: EthernetSwitch {
+        gptpBridge4: GptpBridge {
             @display("p=794,179");
         }
-        gptpBridge5: EthernetSwitch {
+        gptpBridge5: GptpBridge {
             @display("p=927,179");
         }
         gptpSlave: GptpSlave {
